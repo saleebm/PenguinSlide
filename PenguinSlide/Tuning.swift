@@ -102,6 +102,18 @@ enum Tuning {
         static let shockwaveMaxScale: CGFloat = 3.0
         static let shockwaveDuration: TimeInterval = 0.25
         static let shockwaveMinSeverity: CGFloat = 0.2
+
+        /// Landings play their shatter clip at every distance, with linear
+        /// volume falloff from `landingAudioMaxVolume` at the penguin's x
+        /// down to `landingAudioMinVolume` at `landingAudioFalloffRadius`
+        /// and beyond. Falloff radius is intentionally much larger than
+        /// `shakeRadius` — you can hear an icicle hit across the strip even
+        /// though it can't shake the camera from that far. Min volume is a
+        /// nonzero floor so very distant landings still produce a faint
+        /// tick rather than going silent.
+        static let landingAudioFalloffRadius: CGFloat = 600
+        static let landingAudioMinVolume: Float = 0.08
+        static let landingAudioMaxVolume: Float = 0.7
     }
 
     /// Round-level pacing.

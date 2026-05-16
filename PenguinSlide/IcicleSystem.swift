@@ -73,6 +73,14 @@ final class IcicleSystem {
     private var crackAudioNode: SKAudioNode?
     private let crackRestart = SKAction.sequence([.stop(), .play()])
 
+    // Shatter audio for *landings* (not penguin contact). Lives on an
+    // SKAudioNode so each play can set its own volume by landing distance —
+    // SKAction.playSoundFileNamed has no per-call volume. Rapid landings
+    // restart the clip instead of layering, same rate-limit pattern as
+    // `crackAudioNode`. The penguin-contact path keeps the global stacking
+    // `shatterSound` action so direct hits can still layer at full volume.
+    private var shatterAudioNode: SKAudioNode?
+
     // Penguin yelp on damaging hit (HP loss). Skipped on i-frame saves so
     // the cry stays meaningful as "ouch, that hurt". stop+play restarts so
     // back-to-back hits don't queue up a chorus.
@@ -166,6 +174,14 @@ final class IcicleSystem {
         cry.run(SKAction.changeVolume(to: 0.9, duration: 0))
         scene.addChild(cry)
         cryAudioNode = cry
+
+        // No initial changeVolume on the shatter node — `playLandingShatter`
+        // sets the volume explicitly per landing based on distance.
+        let shatter = SKAudioNode(fileNamed: "icicle_shatter.caf")
+        shatter.autoplayLooped = false
+        shatter.isPositional = false
+        scene.addChild(shatter)
+        shatterAudioNode = shatter
     }
 
     /// Per-frame tick. Spawns icicles on cadence, integrates per-body
@@ -484,9 +500,13 @@ final class IcicleSystem {
                 let dx = abs(landingPoint.x - penguin.node.position.x)
                 let severity = max(0, 1 - dx / Tuning.Feel.shakeRadius)
                 shatterIcicle(at: landingPoint, severity: severity)
+
+                // Audio fires on *every* landing, just quieter the further it
+                // is from the penguin. Haptic + screen shake stay close-only —
+                // physical-feel cues shouldn't fire from across the strip.
+                playLandingShatter(distance: dx)
                 if severity > 0 {
                     hapticLight.impactOccurred()
-                    scene?.run(shatterSound)
                     screenShake(near: landingPoint.x)
                 }
                 icicle.removeFromParent()
@@ -614,5 +634,23 @@ final class IcicleSystem {
             .move(to: center, duration: 0.05)
         ])
         camera.run(shake, withKey: "shake")
+    }
+
+    /// Play the landing shatter clip at a volume that falls off linearly
+    /// with `dx` (icicle landing x-distance from penguin). Plays on every
+    /// landing — the floor is `landingAudioMinVolume`, not 0, so a landing
+    /// across the strip still produces a faint tick. Stop+play restart
+    /// mirrors `crackAudioNode`: simultaneous landings cut the previous
+    /// tick short rather than piling up overlapping copies of the same clip.
+    private func playLandingShatter(distance dx: CGFloat) {
+        guard let audio = shatterAudioNode else { return }
+        let t = max(0, 1 - dx / Tuning.Feel.landingAudioFalloffRadius)
+        let vol = Tuning.Feel.landingAudioMinVolume
+            + (Tuning.Feel.landingAudioMaxVolume - Tuning.Feel.landingAudioMinVolume) * Float(t)
+        audio.run(.sequence([
+            .changeVolume(to: vol, duration: 0),
+            .stop(),
+            .play()
+        ]))
     }
 }

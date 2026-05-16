@@ -6,6 +6,7 @@ Eight posts on what we built and what we learned shipping a tilt-controlled Spri
 
 | # | Title | Subsystem |
 |---|-------|-----------|
+| [00](00-bootstrapping-asset-pipeline.md) | Bootstrapping PenguinSlide: SpriteKit, SpriteCook, and ElevenLabs | Pipeline |
 | [01](01-bitmap-heroes-procedural-fx.md) | Bitmap heroes, procedural FX: a mixed asset strategy | Rendering |
 | [02](02-haptic-budget.md) | Haptic budget: medium for damage, light for saves, silent for near-misses | Feedback |
 | [03](03-arcade-audio-layering.md) | Layered arcade audio: cinematic loop, impact SFX, and attenuation rules | Audio |
@@ -17,16 +18,17 @@ Eight posts on what we built and what we learned shipping a tilt-controlled Spri
 
 ## Recommended reading order
 
-If you read them in sequence, you'll get a coherent tour of the codebase:
+Start with the prequel for context on how the raw materials got made, then move into the runtime decisions:
 
-1. **01** — Bitmap heroes, procedural FX *(rendering split)*
-2. **05** — Per-icicle gravity *(working around the engine)*
-3. **04** — I-frames as game feel *(state contract)*
-4. **02** — Haptic budget *(feedback layer 1)*
-5. **03** — Arcade audio layering *(feedback layer 2)*
-6. **06** — Live tuning *(workflow turn)*
-7. **07** — Screen-lock bug *(a war story)*
-8. **08** — Debug accessibility hook *(testing rigor)*
+1. **00** — Bootstrapping the asset pipeline *(how the sprites and audio got here)*
+2. **01** — Bitmap heroes, procedural FX *(rendering split)*
+3. **05** — Per-icicle gravity *(working around the engine)*
+4. **04** — I-frames as game feel *(state contract)*
+5. **02** — Haptic budget *(feedback layer 1)*
+6. **03** — Arcade audio layering *(feedback layer 2)*
+7. **06** — Live tuning *(workflow turn)*
+8. **07** — Screen-lock bug *(a war story)*
+9. **08** — Debug accessibility hook *(testing rigor)*
 
 ## About the project
 
