@@ -16,7 +16,15 @@ final class IcicleSystem {
     private weak var camera: SKCameraNode?
     private weak var penguin: Penguin?
 
+    /// Cosmetic top of the ice strip — back/horizon edge in the 2D
+    /// side-view. Kept only as a reference for warning-phase placement
+    /// and for documentation; gameplay lands at `iceLandingY` instead.
     private let iceTopY: CGFloat
+    /// Plane the penguin's feet sit on. Icicles fall down through the
+    /// scene until their bottom reaches this y, so the shatter visually
+    /// appears on the same surface the penguin is sliding on rather than
+    /// at the back of the strip. See plan: the-ice-looks-like-ticklish-reddy.
+    private let iceLandingY: CGFloat
     private let iceLeftX: CGFloat
     private let iceRightX: CGFloat
     private let sceneSize: CGSize
@@ -32,7 +40,16 @@ final class IcicleSystem {
         weak var node: SKSpriteNode?
         let gravity: CGFloat
     }
-    private var fallingIcicles: [FallingBody] = []
+    /// Falling icicles carry their shadow and original spawn-y so the
+    /// per-frame integrator can lerp shadow scale/alpha as the icicle
+    /// approaches `iceLandingY`. Shards reuse the simpler `FallingBody`.
+    private struct FallingIcicle {
+        weak var node: SKSpriteNode?
+        weak var shadow: SKSpriteNode?
+        let gravity: CGFloat
+        let spawnY: CGFloat
+    }
+    private var fallingIcicles: [FallingIcicle] = []
     private var activeShards:   [FallingBody] = []
 
     // Pre-warmed haptic generators. Medium for accepted hits (HP loss);
@@ -76,6 +93,32 @@ final class IcicleSystem {
         return tex
     }()
 
+    /// Soft dark ellipse used as the under-icicle shadow. Cached once and
+    /// shared via SKSpriteNode so spawning a shadow per icicle is a single
+    /// texture reference, not a path rebuild.
+    private lazy var shadowTexture: SKTexture = {
+        let w: CGFloat = 64
+        let h: CGFloat = 18
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: w, height: h))
+        let img = renderer.image { ctx in
+            // Radial-ish soft falloff: solid center, fades to transparent edge.
+            // A real CGGradient would be sharper but more code; this two-pass
+            // ellipse stack reads fine at the small scales the shadow runs at.
+            let cg = ctx.cgContext
+            cg.saveGState()
+            cg.setFillColor(UIColor(white: 0, alpha: 0.45).cgColor)
+            cg.fillEllipse(in: CGRect(x: w * 0.10, y: h * 0.20,
+                                       width: w * 0.80, height: h * 0.60))
+            cg.setFillColor(UIColor(white: 0, alpha: 0.55).cgColor)
+            cg.fillEllipse(in: CGRect(x: w * 0.25, y: h * 0.30,
+                                       width: w * 0.50, height: h * 0.40))
+            cg.restoreGState()
+        }
+        let tex = SKTexture(image: img)
+        tex.filteringMode = .linear
+        return tex
+    }()
+
     /// Small triangular icy-blue chip used for shatter shards.
     private lazy var shardTexture: SKTexture = {
         let s: CGFloat = 8
@@ -96,12 +139,14 @@ final class IcicleSystem {
     }()
 
     init(scene: SKScene, camera: SKCameraNode, penguin: Penguin,
-         iceTopY: CGFloat, iceLeftX: CGFloat, iceRightX: CGFloat,
+         iceTopY: CGFloat, iceLandingY: CGFloat,
+         iceLeftX: CGFloat, iceRightX: CGFloat,
          sceneSize: CGSize) {
         self.scene = scene
         self.camera = camera
         self.penguin = penguin
         self.iceTopY = iceTopY
+        self.iceLandingY = iceLandingY
         self.iceLeftX = iceLeftX
         self.iceRightX = iceRightX
         self.sceneSize = sceneSize
@@ -141,7 +186,9 @@ final class IcicleSystem {
         // Tracked arrays only cover falling icicles; warning-phase icicles
         // still live as named children, so enumerate covers both paths.
         scene.enumerateChildNodes(withName: "icicle") { node, _ in node.removeFromParent() }
+        scene.enumerateChildNodes(withName: "icicleShadow") { node, _ in node.removeFromParent() }
         for entry in activeShards { entry.node?.removeFromParent() }
+        for entry in fallingIcicles { entry.shadow?.removeFromParent() }
         fallingIcicles.removeAll(keepingCapacity: true)
         activeShards.removeAll(keepingCapacity: true)
         timeSinceLastSpawn = 0
@@ -164,8 +211,15 @@ final class IcicleSystem {
         guard let body = icicle.physicsBody else { return }
 
         // Drop the icicle from the manual gravity loop — we're about to
-        // override its velocity for the recoil and let it fade out.
-        fallingIcicles.removeAll { $0.node === icicle }
+        // override its velocity for the recoil and let it fade out. Also
+        // fade out the shadow now: with the icicle ricocheting up/sideways
+        // it no longer represents an incoming impact, so leaving the shadow
+        // on the ice would read as a stale "still about to land" cue.
+        if let idx = fallingIcicles.firstIndex(where: { $0.node === icicle }) {
+            let shadow = fallingIcicles[idx].shadow
+            fallingIcicles.remove(at: idx)
+            shadow?.run(.sequence([.fadeOut(withDuration: 0.12), .removeFromParent()]))
+        }
 
         // Recoil away from the penguin. Mirrors the knockback direction
         // applied to the penguin in `tryTakeHit`.
@@ -270,7 +324,11 @@ final class IcicleSystem {
         //     t = (-v₀ + √(v₀² + 2·g·h)) / g
         let perIcicleGravity = Tuning.Icicle.sceneGravity * computedIcicleGravityScale(elapsed: elapsed)
         let spawnY = sceneSize.height - height / 2 - 4
-        let h = spawnY - (iceTopY + height / 2)
+        // `iceLandingY` is the penguin's foot plane — the surface the icicle
+        // visually crashes onto. Targeting solves the ballistic equation
+        // against this y so `targetedSpawnX` leads the penguin to the real
+        // landing point, not the cosmetic horizon line (`iceTopY`).
+        let h = spawnY - (iceLandingY + height / 2)
         let v0 = Tuning.Icicle.initialDownVelocity
         let g = perIcicleGravity
         let predictedFallTime: TimeInterval = h > 0 && g > 0
@@ -315,6 +373,7 @@ final class IcicleSystem {
         // Fall — gravity is integrated manually each frame via the
         // `fallingIcicles` entry below. `perIcicleGravity` (computed above
         // for the ballistic-aim prediction) is reused as the integration value.
+        let landingY = iceLandingY   // captured so the closure doesn't reach for `self.iceLandingY`
         let fall = SKAction.run { [weak self, weak icicle] in
             guard let self, let icicle else { return }
             let pb = SKPhysicsBody(rectangleOf: CGSize(width: width * 0.6, height: height * 0.85))
@@ -335,7 +394,24 @@ final class IcicleSystem {
             pb.collisionBitMask = 0
             pb.velocity = CGVector(dx: 0, dy: -Tuning.Icicle.initialDownVelocity)
             icicle.physicsBody = pb
-            self.fallingIcicles.append(FallingBody(node: icicle, gravity: perIcicleGravity))
+
+            // Shadow on the ice surface, directly under the icicle. Z sits
+            // just under the penguin (10) so it reads as ground decoration
+            // without ever covering the player sprite. Starts at min
+            // scale/alpha; the per-frame integrator lerps it up as the
+            // icicle approaches `iceLandingY`.
+            let shadow = SKSpriteNode(texture: self.shadowTexture)
+            shadow.name = "icicleShadow"
+            shadow.position = CGPoint(x: icicle.position.x, y: landingY)
+            shadow.zPosition = 9.5
+            shadow.setScale(Tuning.Feel.shadowMinScale)
+            shadow.alpha = Tuning.Feel.shadowMinAlpha
+            self.scene?.addChild(shadow)
+
+            self.fallingIcicles.append(FallingIcicle(node: icicle,
+                                                    shadow: shadow,
+                                                    gravity: perIcicleGravity,
+                                                    spawnY: icicle.position.y))
         }
 
         icicle.run(.sequence([warning, puff, fall]))
@@ -372,13 +448,34 @@ final class IcicleSystem {
         let dtF = CGFloat(dt)
         guard let penguin else { return }
 
-        // Icicles: apply gravity, then check for landing or fall-through.
+        // Icicles: apply gravity, update under-icicle shadow, then check
+        // for landing or fall-through.
         fallingIcicles = fallingIcicles.compactMap { entry in
-            guard let icicle = entry.node, let body = icicle.physicsBody else { return nil }
+            guard let icicle = entry.node, let body = icicle.physicsBody else {
+                entry.shadow?.removeFromParent()
+                return nil
+            }
             body.velocity.dy -= entry.gravity * dtF
+
+            // Shadow tracks the icicle's x on the landing plane, and lerps
+            // its scale/alpha by how far through the fall the icicle is.
+            // Without a positive (spawnY - landingY) span the lerp would
+            // divide by zero on degenerate scenes; clamp to 0 in that case.
+            if let shadow = entry.shadow {
+                let span = entry.spawnY - iceLandingY
+                let p: CGFloat = span > 0
+                    ? 1 - max(0, min(1, (icicle.position.y - iceLandingY) / span))
+                    : 0
+                shadow.position = CGPoint(x: icicle.position.x, y: iceLandingY)
+                shadow.setScale(Tuning.Feel.shadowMinScale
+                    + (Tuning.Feel.shadowMaxScale - Tuning.Feel.shadowMinScale) * p)
+                shadow.alpha = Tuning.Feel.shadowMinAlpha
+                    + (Tuning.Feel.shadowMaxAlpha - Tuning.Feel.shadowMinAlpha) * p
+            }
+
             let bottom = icicle.position.y - icicle.size.height / 2
-            if bottom <= iceTopY {
-                let landingPoint = CGPoint(x: icicle.position.x, y: iceTopY)
+            if bottom <= iceLandingY {
+                let landingPoint = CGPoint(x: icicle.position.x, y: iceLandingY)
                 // Every landing reaching the ice is a survived landing —
                 // the penguin-contact path consumes icicles before they get
                 // here. Severity is pure x-distance falloff to the camera
@@ -393,11 +490,13 @@ final class IcicleSystem {
                     screenShake(near: landingPoint.x)
                 }
                 icicle.removeFromParent()
+                entry.shadow?.removeFromParent()
                 return nil
             }
             if icicle.position.y < -icicle.size.height {
                 // Safety net — somehow fell past the floor with no shatter.
                 icicle.removeFromParent()
+                entry.shadow?.removeFromParent()
                 return nil
             }
             return entry
@@ -458,6 +557,29 @@ final class IcicleSystem {
 
             shard.run(.sequence([
                 .fadeOut(withDuration: Tuning.Feel.shardLifetime),
+                .removeFromParent()
+            ]))
+        }
+
+        // Shockwave ring: a quick expanding/fading circle stamped at the
+        // landing point. Reinforces "the icicle hit *this* spot on the
+        // surface the penguin is on." Gated on severity so distant landings
+        // (which already get only a small shard burst and no shake) don't
+        // strobe a ring every frame at peak spawn rate.
+        if s >= Tuning.Feel.shockwaveMinSeverity {
+            let ring = SKShapeNode(circleOfRadius: 6)
+            ring.position = p
+            ring.zPosition = 6
+            ring.strokeColor = UIColor(white: 1.0, alpha: 0.9)
+            ring.fillColor = .clear
+            ring.lineWidth = 2
+            scene.addChild(ring)
+            ring.run(.sequence([
+                .group([
+                    .scale(to: Tuning.Feel.shockwaveMaxScale,
+                           duration: Tuning.Feel.shockwaveDuration),
+                    .fadeOut(withDuration: Tuning.Feel.shockwaveDuration)
+                ]),
                 .removeFromParent()
             ]))
         }

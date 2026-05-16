@@ -3,17 +3,13 @@
 <!-- screenshot of the game, rotated 90 degrees -->
 ![Penguin Slide](./screenshot.png)
 
-Tilt-controlled iOS game where a penguin slides on ice to dodge cracking, falling icicles. iOS 17+. SpriteKit + SwiftUI. Zero asset files — penguin and icicles are drawn procedurally at runtime.
+Tilt-controlled iOS game where a penguin slides on ice to dodge cracking, falling icicles. iOS 17+. SpriteKit + SwiftUI. Bitmap pixel-art sprites for the penguin, icicles, ice tile, and sky; transient effects (snow puffs, shatter shards, HUD heart) are drawn procedurally at runtime.
 
 ## Setup
 
 1. **Xcode → New Project → App** (iOS). Interface: **SwiftUI**. Language: **Swift**. Name it `PenguinSlide`.
 2. Delete the auto-generated `ContentView.swift` and `PenguinSlideApp.swift`.
-3. Drag these four files into the project (check "Copy items if needed"):
-   - `PenguinSlideApp.swift`
-   - `ContentView.swift`
-   - `GameScene.swift`
-   - `TextureFactory.swift`
+3. Drag the entire `PenguinSlide/` source folder into the project (check "Copy items if needed"). This brings in all Swift files (`PenguinSlideApp`, `ContentView`, `GameScene`, `Penguin`, `PenguinAnimations`, `PenguinTuning`, `Tuning`, `IcicleSystem`, `HUDController`, `SpriteCatalog`, `SettingsView`, `PlayerProfile`) along with `Assets.xcassets` and the `Sounds/` directory.
 4. **Motion permission** — required, or CoreMotion crashes on first use.
    - In Xcode 15+, the default project uses a generated Info.plist (no file). To add the motion key: select your target → **Info** tab → under **Custom iOS Target Properties** add a new row:
      - Key: `Privacy - Motion Usage Description`

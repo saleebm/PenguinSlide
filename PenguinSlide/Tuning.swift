@@ -32,8 +32,13 @@ enum Tuning {
         /// peak-difficulty fall ≈ 1.0 s across a typical iPhone screen.
         static let sceneGravity: CGFloat = 700
         /// Mean per-icicle gravity scale; lerps with the difficulty ramp.
-        static let gravityScaleStart:    CGFloat = 0.45
-        static let gravityScaleEnd:      CGFloat = 1.10
+        /// Bumped ~18% from the original 0.45 / 1.10 to preserve wall-clock
+        /// fall time after the landing plane moved from `iceTopY` down to
+        /// `iceLandingY` (the penguin's foot plane) — the fall distance grew
+        /// by the same ~18%, and gravity scales linearly with distance for
+        /// fixed fall time.
+        static let gravityScaleStart:    CGFloat = 0.53
+        static let gravityScaleEnd:      CGFloat = 1.30
         /// Per-icicle randomness around the mean, ±this fraction.
         static let gravityScaleVariance: CGFloat = 0.20
         /// Small downward kick so even the lightest icicles start moving.
@@ -81,6 +86,22 @@ enum Tuning {
         static let crackBurstShards: Int = 14
         /// Pop-speed multiplier for the penguin-contact crack burst.
         static let crackBurstSpeedScale: CGFloat = 1.6
+
+        /// Under-icicle shadow grows + darkens as the icicle approaches the
+        /// landing plane. Sells "this icicle is getting closer to the same
+        /// plane the penguin is sliding on" without faking perspective scale
+        /// on the icicle itself.
+        static let shadowMinScale: CGFloat = 0.35
+        static let shadowMaxScale: CGFloat = 1.0
+        static let shadowMinAlpha: CGFloat = 0.15
+        static let shadowMaxAlpha: CGFloat = 0.55
+
+        /// Quick expanding ring at impact — reads as "the ice cracked here."
+        /// Only fires when severity > `shockwaveMinSeverity` so distant
+        /// landings don't strobe a ring every frame at peak spawn rate.
+        static let shockwaveMaxScale: CGFloat = 3.0
+        static let shockwaveDuration: TimeInterval = 0.25
+        static let shockwaveMinSeverity: CGFloat = 0.2
     }
 
     /// Round-level pacing.

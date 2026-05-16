@@ -38,8 +38,9 @@ struct PenguinTuning: Codable {
     // MARK: - Body
 
     /// Collision circle radius as a fraction of visual penguin width.
-    /// Sized so the hitbox reaches *above* the kinematic landing line
-    /// (iceTopY) and into the icicle's fall path.
+    /// Sized so the hitbox reaches up into the icicle's fall path between
+    /// the spawn line and `iceLandingY` (the penguin's foot plane the
+    /// icicles now crash onto — see plan: the-ice-looks-like-ticklish-reddy).
     var collisionRadiusFraction: CGFloat = 0.42
     /// Mass (kg). Used for the restitution math when a falling icicle
     /// contacts the penguin. The manual gravity integration ignores mass.

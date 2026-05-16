@@ -76,6 +76,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                                camera: cam,
                                penguin: penguin,
                                iceTopY: iceTopY,
+                               iceLandingY: iceFloorY,
                                iceLeftX: iceLeftX,
                                iceRightX: iceRightX,
                                sceneSize: size)
@@ -132,6 +133,22 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // update sees a multi-second dt (the lock duration), `elapsed`
         // jumps, score balloons, and Penguin/IcicleSystem integrate one
         // giant step. Same sentinel pattern as restart()/start (penguinslide-jj2).
+        lastUpdateTime = 0
+        view?.isPaused = false
+        bgMusic?.run(SKAction.play())
+    }
+
+    // MARK: - Settings sheet pause hooks
+
+    // ContentView calls these when the settings sheet opens/closes. Same
+    // mechanics as the app-lifecycle handlers, kept as separate entry
+    // points so they can diverge later (e.g., dim the scene).
+    func pauseForSettings() {
+        view?.isPaused = true
+        bgMusic?.run(SKAction.pause())
+    }
+
+    func resumeFromSettings() {
         lastUpdateTime = 0
         view?.isPaused = false
         bgMusic?.run(SKAction.play())
