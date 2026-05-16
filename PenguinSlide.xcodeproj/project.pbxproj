@@ -1,0 +1,483 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		35DA976299301CC5C7B25719 /* icicle_crack.caf in Resources */ = {isa = PBXBuildFile; fileRef = B809643F24F3F8B1319A96D9 /* icicle_crack.caf */; };
+		3971E4F7B06782DD42A19DB1 /* PenguinSlideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */; };
+		3B639DB303C3763F6E68488E /* icicle_shatter.caf in Resources */ = {isa = PBXBuildFile; fileRef = BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */; };
+		4ABC8A845AD7621F378C4DF8 /* Penguin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0F7E9EA7CE05166615F38 /* Penguin.swift */; };
+		4F3382049AD7BB97AB37082E /* penguin_cry.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */; };
+		59B1C8A65E290028B05E4C71 /* Tuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E0CFF73FD77DABD504F490 /* Tuning.swift */; };
+		6C671DDEC56C138E56B2B4B0 /* bg_music.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0C45BDA2544B44B0CC714240 /* bg_music.caf */; };
+		82076EBAEF3597549D04EF24 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 386AF075E100933C2E0A5135 /* HUDController.swift */; };
+		8D8003CFCAAF7CED5E68A7DF /* PenguinAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */; };
+		9E2E12EE3973C54BABD5893D /* SpriteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */; };
+		C0110632648798FF2007276A /* PenguinSlideUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326731CF1FAC96F9BE8C1AEF /* PenguinSlideUITests.swift */; };
+		C222A54FB176BF55566F1898 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E76E15B607531E1E9A2C2 /* ContentView.swift */; };
+		C2272A9B4D0173D8CC62DD09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26FF0981C3921F2D698B0A34 /* Assets.xcassets */; };
+		C68010E4550552A7776CFA0F /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CFBF8AD6B81B08376C9596 /* GameScene.swift */; };
+		CAD15EEB35AB73F60CAE2071 /* PenguinTuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */; };
+		D7C0B672746BA0AED42897D8 /* IcicleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E31931172B9E867D83B8D8D /* IcicleSystem.swift */; };
+		EF2828D7D54909F723B43A5E /* game_over.caf in Resources */ = {isa = PBXBuildFile; fileRef = 939B1F4AC669CBFEB2D9EB26 /* game_over.caf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E67D192D90DF0A49EE86E822 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5B8A2D3E365686A19C3FE65 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 625A7C99082672757EEA858B;
+			remoteInfo = PenguinSlide;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0C45BDA2544B44B0CC714240 /* bg_music.caf */ = {isa = PBXFileReference; path = bg_music.caf; sourceTree = "<group>"; };
+		1E31931172B9E867D83B8D8D /* IcicleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IcicleSystem.swift; sourceTree = "<group>"; };
+		24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
+		26FF0981C3921F2D698B0A34 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		326731CF1FAC96F9BE8C1AEF /* PenguinSlideUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideUITests.swift; sourceTree = "<group>"; };
+		386AF075E100933C2E0A5135 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
+		3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */ = {isa = PBXFileReference; path = penguin_cry.caf; sourceTree = "<group>"; };
+		50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinTuning.swift; sourceTree = "<group>"; };
+		54E0CFF73FD77DABD504F490 /* Tuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tuning.swift; sourceTree = "<group>"; };
+		6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinAnimations.swift; sourceTree = "<group>"; };
+		8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PenguinSlide.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		939B1F4AC669CBFEB2D9EB26 /* game_over.caf */ = {isa = PBXFileReference; path = game_over.caf; sourceTree = "<group>"; };
+		A1D0F7E9EA7CE05166615F38 /* Penguin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Penguin.swift; sourceTree = "<group>"; };
+		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; path = icicle_crack.caf; sourceTree = "<group>"; };
+		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; path = icicle_shatter.caf; sourceTree = "<group>"; };
+		D0CFBF8AD6B81B08376C9596 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		D99E76E15B607531E1E9A2C2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PenguinSlideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1647CB5EBECF5E32DEE55F01 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */,
+				E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3D4ACBFD6F27C97D649D1E4A = {
+			isa = PBXGroup;
+			children = (
+				FEB6BEC25977A9CCD23D2C09 /* PenguinSlide */,
+				BB2E386A06498B96EC944E70 /* PenguinSlideUITests */,
+				1647CB5EBECF5E32DEE55F01 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BB2E386A06498B96EC944E70 /* PenguinSlideUITests */ = {
+			isa = PBXGroup;
+			children = (
+				326731CF1FAC96F9BE8C1AEF /* PenguinSlideUITests.swift */,
+			);
+			path = PenguinSlideUITests;
+			sourceTree = "<group>";
+		};
+		DFBC9F4A60C1822F0FAA8DAF /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				0C45BDA2544B44B0CC714240 /* bg_music.caf */,
+				939B1F4AC669CBFEB2D9EB26 /* game_over.caf */,
+				B809643F24F3F8B1319A96D9 /* icicle_crack.caf */,
+				BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */,
+				3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		FEB6BEC25977A9CCD23D2C09 /* PenguinSlide */ = {
+			isa = PBXGroup;
+			children = (
+				26FF0981C3921F2D698B0A34 /* Assets.xcassets */,
+				D99E76E15B607531E1E9A2C2 /* ContentView.swift */,
+				D0CFBF8AD6B81B08376C9596 /* GameScene.swift */,
+				386AF075E100933C2E0A5135 /* HUDController.swift */,
+				1E31931172B9E867D83B8D8D /* IcicleSystem.swift */,
+				A1D0F7E9EA7CE05166615F38 /* Penguin.swift */,
+				6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */,
+				E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */,
+				50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */,
+				24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */,
+				54E0CFF73FD77DABD504F490 /* Tuning.swift */,
+				DFBC9F4A60C1822F0FAA8DAF /* Sounds */,
+			);
+			path = PenguinSlide;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		36DD02D52F6DBC62C57F7CE0 /* PenguinSlideUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 566B9BEB4E34C9B65D21DA11 /* Build configuration list for PBXNativeTarget "PenguinSlideUITests" */;
+			buildPhases = (
+				98CCEEFCC8666415E79506BC /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				64DDA7F810769C904C04B777 /* PBXTargetDependency */,
+			);
+			name = PenguinSlideUITests;
+			packageProductDependencies = (
+			);
+			productName = PenguinSlideUITests;
+			productReference = E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		625A7C99082672757EEA858B /* PenguinSlide */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B9C2702576C632D2D96707D0 /* Build configuration list for PBXNativeTarget "PenguinSlide" */;
+			buildPhases = (
+				1DBCDD795FAF43FD5EB73111 /* Sources */,
+				A64BD62DD21539602BF4FC16 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PenguinSlide;
+			packageProductDependencies = (
+			);
+			productName = PenguinSlide;
+			productReference = 8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A5B8A2D3E365686A19C3FE65 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					36DD02D52F6DBC62C57F7CE0 = {
+						DevelopmentTeam = L7U86T3YRV;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 625A7C99082672757EEA858B;
+					};
+					625A7C99082672757EEA858B = {
+						DevelopmentTeam = L7U86T3YRV;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = D6BF9CEC3FB5AAAB928F00AD /* Build configuration list for PBXProject "PenguinSlide" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 3D4ACBFD6F27C97D649D1E4A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1647CB5EBECF5E32DEE55F01 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				625A7C99082672757EEA858B /* PenguinSlide */,
+				36DD02D52F6DBC62C57F7CE0 /* PenguinSlideUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A64BD62DD21539602BF4FC16 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2272A9B4D0173D8CC62DD09 /* Assets.xcassets in Resources */,
+				6C671DDEC56C138E56B2B4B0 /* bg_music.caf in Resources */,
+				EF2828D7D54909F723B43A5E /* game_over.caf in Resources */,
+				35DA976299301CC5C7B25719 /* icicle_crack.caf in Resources */,
+				3B639DB303C3763F6E68488E /* icicle_shatter.caf in Resources */,
+				4F3382049AD7BB97AB37082E /* penguin_cry.caf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1DBCDD795FAF43FD5EB73111 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C222A54FB176BF55566F1898 /* ContentView.swift in Sources */,
+				C68010E4550552A7776CFA0F /* GameScene.swift in Sources */,
+				82076EBAEF3597549D04EF24 /* HUDController.swift in Sources */,
+				D7C0B672746BA0AED42897D8 /* IcicleSystem.swift in Sources */,
+				4ABC8A845AD7621F378C4DF8 /* Penguin.swift in Sources */,
+				8D8003CFCAAF7CED5E68A7DF /* PenguinAnimations.swift in Sources */,
+				3971E4F7B06782DD42A19DB1 /* PenguinSlideApp.swift in Sources */,
+				CAD15EEB35AB73F60CAE2071 /* PenguinTuning.swift in Sources */,
+				9E2E12EE3973C54BABD5893D /* SpriteCatalog.swift in Sources */,
+				59B1C8A65E290028B05E4C71 /* Tuning.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		98CCEEFCC8666415E79506BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0110632648798FF2007276A /* PenguinSlideUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		64DDA7F810769C904C04B777 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 625A7C99082672757EEA858B /* PenguinSlide */;
+			targetProxy = E67D192D90DF0A49EE86E822 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		35DD6983B3F1D6E608697605 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlideUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PenguinSlide;
+			};
+			name = Debug;
+		};
+		46E920A7E30EF562CD42C093 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlideUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PenguinSlide;
+			};
+			name = Release;
+		};
+		6EF10C00324A10419D9D6D5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L7U86T3YRV;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7F02BFCBDA6AE3CBE84EAE25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PenguinSlide/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlide;
+				PRODUCT_NAME = PenguinSlide;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C53875FCC87EB94E7727D76A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PenguinSlide/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlide;
+				PRODUCT_NAME = PenguinSlide;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D5C4AEE51BFF2C01C5C4E6AE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L7U86T3YRV;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		566B9BEB4E34C9B65D21DA11 /* Build configuration list for PBXNativeTarget "PenguinSlideUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				35DD6983B3F1D6E608697605 /* Debug */,
+				46E920A7E30EF562CD42C093 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B9C2702576C632D2D96707D0 /* Build configuration list for PBXNativeTarget "PenguinSlide" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7F02BFCBDA6AE3CBE84EAE25 /* Debug */,
+				C53875FCC87EB94E7727D76A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D6BF9CEC3FB5AAAB928F00AD /* Build configuration list for PBXProject "PenguinSlide" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EF10C00324A10419D9D6D5B /* Debug */,
+				D5C4AEE51BFF2C01C5C4E6AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A5B8A2D3E365686A19C3FE65 /* Project object */;
+}

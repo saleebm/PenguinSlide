@@ -1,0 +1,51 @@
+{
+  "penguin_base": {
+    "asset_id": "000c7725-d56a-43d7-8d2a-99c516b92677",
+    "sha12_local": "a051b3a21905",
+    "label": "Canonical 78x78 cartoon penguin (origin of Assets.xcassets/Penguin.imageset/penguin.png)"
+  },
+  "penguin_idle": {
+    "asset_id": "3b8a4812-7473-473a-a955-43982ac378b4",
+    "sha12": "c74fa2f26171",
+    "label": "Idle loop — 12 frames, 90x90 each, 8fps. Subtle breathing bob + flipper sway + blink.",
+    "frames": 12,
+    "frame_size": "90x90",
+    "fps": 8,
+    "output_format": "spritesheet",
+    "loops": true,
+    "asset_path": "PenguinSlide/Assets.xcassets/PenguinIdle.imageset/penguin_idle.png"
+  },
+  "penguin_slide": {
+    "asset_id": "1e8f2fd9-02d5-4006-963e-13ee6dd0b022",
+    "sha12": "ad1cd2385368",
+    "label": "Slide loop — 8 frames, 90x90 each, 8fps. Right-facing forward lean (mirror via xScale for left).",
+    "frames": 8,
+    "frame_size": "90x90",
+    "fps": 8,
+    "output_format": "spritesheet",
+    "loops": true,
+    "asset_path": "PenguinSlide/Assets.xcassets/PenguinSlide.imageset/penguin_slide.png"
+  },
+  "penguin_hurt": {
+    "asset_id": "7f067a18-0e4a-4ec5-8c6f-991872ca3c60",
+    "sha12": "5a0e2f38deb9",
+    "label": "Hurt one-shot — 6 frames, 90x90 each, 8fps. Eyes-shut recoil + flippers raised.",
+    "frames": 6,
+    "frame_size": "90x90",
+    "fps": 8,
+    "output_format": "spritesheet",
+    "loops": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/PenguinHurt.imageset/penguin_hurt.png"
+  },
+  "penguin_victory": {
+    "asset_id": "9b9e084c-98b0-4937-80e1-759d01e3620d",
+    "sha12": "25b825089342",
+    "label": "Victory one-shot — 10 frames, 90x90 each, 8fps. Arms-up cheer, eyes shut happy.",
+    "frames": 10,
+    "frame_size": "90x90",
+    "fps": 8,
+    "output_format": "spritesheet",
+    "loops": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/PenguinVictory.imageset/penguin_victory.png"
+  }
+}
