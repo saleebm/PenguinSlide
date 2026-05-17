@@ -34,7 +34,10 @@ struct ContentView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                gearButton
+                if scene != nil {
+                    gearButton
+                        .transition(.opacity)
+                }
             }
             .overlay {
                 settingsOverlay
@@ -43,7 +46,7 @@ struct ContentView: View {
                 if scene == nil {
                     let s = GameScene(size: proxy.size)
                     s.scaleMode = .resizeFill
-                    scene = s
+                    withAnimation(overlaySpring) { scene = s }
                 }
             }
             // Pause/resume so the round freezes while settings is up; the
