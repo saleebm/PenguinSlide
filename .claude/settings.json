@@ -1,0 +1,21 @@
+{
+  "enabledMcpjsonServers": [
+    "RealFaviconGenerator"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__spritecook__get_credit_balance",
+      "mcp__spritecook__generate_game_art",
+      "Bash(xcodegen --version)",
+      "Bash(xcodegen generate *)",
+      "Bash(br init *)",
+      "Bash(br create *)",
+      "Bash(br dep *)",
+      "Bash(br ready *)",
+      "Bash(br blocked *)",
+      "Bash(br update *)",
+      "Bash(br close *)",
+      "Bash(br list *)"
+    ]
+  }
+}

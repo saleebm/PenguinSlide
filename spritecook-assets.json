@@ -47,5 +47,12 @@
     "output_format": "spritesheet",
     "loops": false,
     "asset_path": "PenguinSlide/Assets.xcassets/PenguinVictory.imageset/penguin_victory.png"
+  },
+  "penguin_icon": {
+    "asset_id": "37796a29-e7d7-41dc-923e-a32b45a9d6c3",
+    "sha12_local": "c379bf9e10cd",
+    "label": "iOS app icon — penguin sliding on icy slope, pixel-art aesthetic, 1024x1024 opaque. Generated with reference_asset_id=penguin_base.",
+    "asset_path": "PenguinSlide/Assets.xcassets/AppIcon.appiconset/icon-1024.png",
+    "source_raw_path": "build/icon-preview/penguin-icon-raw.png"
   }
 }

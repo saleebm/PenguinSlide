@@ -29,7 +29,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         TARGETED_DEVICE_FAMILY: "1,2"
         ENABLE_PREVIEWS: YES
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   PenguinSlideUITests:
     type: bundle.ui-testing
