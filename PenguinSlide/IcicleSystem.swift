@@ -60,12 +60,6 @@ final class IcicleSystem {
     private let hapticHit = UIImpactFeedbackGenerator(style: .medium)
     private let hapticLight = UIImpactFeedbackGenerator(style: .light)
 
-    // Cached shatter action. Pre-built once so each invocation is a cheap
-    // run() call rather than a fresh disk lookup. `waitForCompletion: false`
-    // so the action returns immediately and overlapping calls stack cleanly
-    // at peak spawn rate.
-    private let shatterSound = SKAction.playSoundFileNamed("icicle_shatter.caf",
-                                                            waitForCompletion: false)
     // Crack uses SKAudioNode so we can attenuate it (the raw clip is loud
     // enough to grate when icicles spawn 2-3×/s). stop+play on each spawn
     // restarts the clip, which also naturally rate-limits the SFX so it
@@ -73,12 +67,13 @@ final class IcicleSystem {
     private var crackAudioNode: SKAudioNode?
     private let crackRestart = SKAction.sequence([.stop(), .play()])
 
-    // Shatter audio for *landings* (not penguin contact). Lives on an
+    // Shatter audio for landings and penguin contact. Lives on an
     // SKAudioNode so each play can set its own volume by landing distance —
-    // SKAction.playSoundFileNamed has no per-call volume. Rapid landings
+    // SKAction.playSoundFileNamed has no per-call volume. Rapid plays
     // restart the clip instead of layering, same rate-limit pattern as
-    // `crackAudioNode`. The penguin-contact path keeps the global stacking
-    // `shatterSound` action so direct hits can still layer at full volume.
+    // `crackAudioNode`. Penguin-contact hits route through
+    // `playLandingShatter(distance: 0)` so they land at the same calibrated
+    // max volume as a landing right under the penguin.
     private var shatterAudioNode: SKAudioNode?
 
     // Penguin yelp on damaging hit (HP loss). Skipped on i-frame saves so
@@ -245,7 +240,7 @@ final class IcicleSystem {
 
         if accepted {
             hapticHit.impactOccurred()
-            scene?.run(shatterSound)
+            playLandingShatter(distance: 0)
             cryAudioNode?.run(cryRestart)
             shatterIcicle(at: contactPoint, severity: 1.0,
                           countOverride: Tuning.Feel.crackBurstShards,
@@ -255,7 +250,7 @@ final class IcicleSystem {
             // Blocked by i-frames: softer pop, no shake. The penguin's
             // alpha flicker is the feedback for "still invulnerable".
             hapticLight.impactOccurred()
-            scene?.run(shatterSound)
+            playLandingShatter(distance: 0)
             shatterIcicle(at: contactPoint, severity: 0.6,
                           countOverride: Tuning.Feel.shardCountMax,
                           speedScaleOverride: 1.2)

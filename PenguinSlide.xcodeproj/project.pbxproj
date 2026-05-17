@@ -39,23 +39,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0C45BDA2544B44B0CC714240 /* bg_music.caf */ = {isa = PBXFileReference; path = bg_music.caf; sourceTree = "<group>"; };
+		0C45BDA2544B44B0CC714240 /* bg_music.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = bg_music.caf; sourceTree = "<group>"; };
 		1E31931172B9E867D83B8D8D /* IcicleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IcicleSystem.swift; sourceTree = "<group>"; };
 		24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
 		26FF0981C3921F2D698B0A34 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		326731CF1FAC96F9BE8C1AEF /* PenguinSlideUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideUITests.swift; sourceTree = "<group>"; };
 		386AF075E100933C2E0A5135 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
-		3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */ = {isa = PBXFileReference; path = penguin_cry.caf; sourceTree = "<group>"; };
+		3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = penguin_cry.caf; sourceTree = "<group>"; };
 		50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinTuning.swift; sourceTree = "<group>"; };
 		54E0CFF73FD77DABD504F490 /* Tuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tuning.swift; sourceTree = "<group>"; };
 		5BE6E684FEE33AD911D663AA /* PlayerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProfile.swift; sourceTree = "<group>"; };
 		6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinAnimations.swift; sourceTree = "<group>"; };
 		8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PenguinSlide.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		939B1F4AC669CBFEB2D9EB26 /* game_over.caf */ = {isa = PBXFileReference; path = game_over.caf; sourceTree = "<group>"; };
+		939B1F4AC669CBFEB2D9EB26 /* game_over.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = game_over.caf; sourceTree = "<group>"; };
 		A1D0F7E9EA7CE05166615F38 /* Penguin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Penguin.swift; sourceTree = "<group>"; };
 		B53A0CCA084635603ABEC6EF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; path = icicle_crack.caf; sourceTree = "<group>"; };
-		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; path = icicle_shatter.caf; sourceTree = "<group>"; };
+		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = icicle_crack.caf; sourceTree = "<group>"; };
+		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = icicle_shatter.caf; sourceTree = "<group>"; };
 		D0CFBF8AD6B81B08376C9596 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		D99E76E15B607531E1E9A2C2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PenguinSlideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };

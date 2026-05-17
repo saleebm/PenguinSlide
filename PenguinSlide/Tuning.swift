@@ -112,8 +112,8 @@ enum Tuning {
         /// nonzero floor so very distant landings still produce a faint
         /// tick rather than going silent.
         static let landingAudioFalloffRadius: CGFloat = 600
-        static let landingAudioMinVolume: Float = 0.08
-        static let landingAudioMaxVolume: Float = 0.7
+        static let landingAudioMinVolume: Float = 0.025
+        static let landingAudioMaxVolume: Float = 0.22
     }
 
     /// Round-level pacing.
