@@ -100,3 +100,30 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 - Icicles have no physics body during the warning phase, then gain a dynamic body with `usesPreciseCollisionDetection = true` the moment they detach. The latter prevents tunneling at peak fall speeds (≈15 pt/frame at 60 fps).
 - Hit response is two-sided: the penguin loses HP via `tryTakeHit` (with i-frames gating consecutive damage), and IcicleSystem.onIcicleHitPenguin manually recoils the icicle and emits the crack burst. Both sides agree on direction so the visuals feel coherent.
 - Scene is held in `@State` in `ContentView` so SwiftUI redraws don't recreate it (a known iOS 15-era footgun that's still the correct pattern to avoid).
+
+## App Store Description
+
+A small penguin against a big mountain of icicles. Tilt to dodge, slide to survive, beat your own best. Plays in landscape, one-handed.
+
+You are a small, round penguin on a long sheet of ice. Above you, a mountain. From the mountain, icicles. Your job is to not get hit by them.
+Tilt your phone left or right and the penguin slides with you. The longer you survive, the faster the ice falls. That's the whole game. No tutorials, no menus to click through, no ads waiting to interrupt you.
+
+WHAT'S IN IT:
+One-thumb tilt controls using your phone's motion sensor
+Falling icicles that get faster the longer you live
+A best-score that only competes with yourself
+Landscape play, sized for short breaks
+Pixel-art penguin who looks personally betrayed every time he gets hit
+
+WHAT'S NOT IN IT:
+Accounts or sign-ups
+Internet connection
+Ads
+Tracking, analytics, or data collection of any kind
+In-app purchases
+Daily login streaks designed to guilt you
+
+The game runs entirely on your device. Your high score lives on your phone and nowhere else. If you delete the app, you delete the data - there is no copy anywhere.
+Built for the kind of moments where you want to play something for two minutes without committing to anything. Waiting for the kettle. Standing in line. The thirty seconds before a meeting starts.
+Best played with sound on - but it'll mix with your music if you'd rather have your own soundtrack to penguin survival.
+Tilt left. Tilt right. Don't get hit. Beat your last run.
