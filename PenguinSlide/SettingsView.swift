@@ -17,7 +17,6 @@ struct SettingsView: View {
     let onDismiss: () -> Void
 
     @State private var name: String = PlayerProfile.name
-    @FocusState private var nameFieldFocused: Bool
 
     /// Shield-ring blue from the game's existing palette. Used as the
     /// accent so the modal reads as part of the same world.
@@ -25,12 +24,12 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            SettingsHeader(accent: accent, name: $name, onDismiss: onDismiss)
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    playerSection
-                    howToPlaySection
-                    aboutSection
+                    PlayerSection(accent: accent, name: $name)
+                    HowToPlaySection(accent: accent)
+                    AboutSection(accent: accent)
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 24)
@@ -60,16 +59,22 @@ struct SettingsView: View {
         // scrim-tap dismiss would silently drop the in-flight edit.
         .onDisappear { PlayerProfile.name = name }
     }
+}
 
-    // MARK: - Header
+// MARK: - Sections
 
-    private var header: some View {
+private struct SettingsHeader: View {
+    let accent: Color
+    @Binding var name: String
+    let onDismiss: () -> Void
+
+    var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "snowflake")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(accent)
             Text("Settings")
-                .font(.system(.title2, design: .rounded, weight: .bold))
+                .font(.system(.title2, design: .rounded).weight(.bold))
                 .foregroundStyle(.white)
             Spacer()
             Button {
@@ -87,12 +92,16 @@ struct SettingsView: View {
         .padding(.top, 20)
         .padding(.bottom, 14)
     }
+}
 
-    // MARK: - Sections
+private struct PlayerSection: View {
+    let accent: Color
+    @Binding var name: String
+    @FocusState private var nameFieldFocused: Bool
 
-    private var playerSection: some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionLabel("Player")
+            SectionLabel(text: "Player", accent: accent)
             HStack(spacing: 12) {
                 Image(systemName: "person.crop.circle.fill")
                     .font(.title3)
@@ -134,22 +143,33 @@ struct SettingsView: View {
             )
         }
     }
+}
 
-    private var howToPlaySection: some View {
+private struct HowToPlaySection: View {
+    let accent: Color
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionLabel("How to Play")
-            tipRow(systemImage: "iphone.gen3.radiowaves.left.and.right",
+            SectionLabel(text: "How to Play", accent: accent)
+            TipRow(accent: accent,
+                   systemImage: "iphone.gen3.radiowaves.left.and.right",
                    text: "Tilt your phone left and right to slide on the ice.")
-            tipRow(systemImage: "snowflake",
+            TipRow(accent: accent,
+                   systemImage: "snowflake",
                    text: "Dodge falling icicles — three hits and the round ends.")
-            tipRow(systemImage: "trophy.fill",
+            TipRow(accent: accent,
+                   systemImage: "trophy.fill",
                    text: "Survive longer to grow your score and beat your best.")
         }
     }
+}
 
-    private var aboutSection: some View {
+private struct AboutSection: View {
+    let accent: Color
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionLabel("About")
+            SectionLabel(text: "About", accent: accent)
             HStack {
                 Text("Version")
                     .foregroundStyle(.white.opacity(0.7))
@@ -167,17 +187,28 @@ struct SettingsView: View {
             )
         }
     }
+}
 
-    // MARK: - Building blocks
+// MARK: - Building blocks
 
-    private func sectionLabel(_ text: String) -> some View {
+private struct SectionLabel: View {
+    let text: String
+    let accent: Color
+
+    var body: some View {
         Text(text.uppercased())
-            .font(.system(.caption, design: .rounded, weight: .heavy))
+            .font(.system(.caption, design: .rounded).weight(.heavy))
             .tracking(1.6)
             .foregroundStyle(accent.opacity(0.85))
     }
+}
 
-    private func tipRow(systemImage: String, text: String) -> some View {
+private struct TipRow: View {
+    let accent: Color
+    let systemImage: String
+    let text: String
+
+    var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: systemImage)
                 .font(.callout)

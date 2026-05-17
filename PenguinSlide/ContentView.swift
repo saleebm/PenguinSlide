@@ -35,12 +35,12 @@ struct ContentView: View {
             }
             .overlay(alignment: .topTrailing) {
                 if scene != nil {
-                    gearButton
+                    GearButton(isHidden: showingSettings, action: openSettings)
                         .transition(.opacity)
                 }
             }
             .overlay {
-                settingsOverlay
+                SettingsOverlay(isPresented: showingSettings, onDismiss: closeSettings)
             }
             .onAppear {
                 if scene == nil {
@@ -62,12 +62,25 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Pieces
+    // MARK: - Transitions
 
-    private var gearButton: some View {
-        Button {
-            openSettings()
-        } label: {
+    private func openSettings() {
+        withAnimation(overlaySpring) { showingSettings = true }
+    }
+
+    private func closeSettings() {
+        withAnimation(overlaySpring) { showingSettings = false }
+    }
+}
+
+// MARK: - Pieces
+
+private struct GearButton: View {
+    let isHidden: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
             Image(systemName: "gearshape.fill")
                 .font(.title2)
                 .symbolRenderingMode(.hierarchical)
@@ -83,20 +96,31 @@ struct ContentView: View {
         .accessibilityLabel("Settings")
         // Hide the gear while the modal is up so it doesn't poke through
         // the scrim during the dismiss animation.
-        .opacity(showingSettings ? 0 : 1)
+        .opacity(isHidden ? 0 : 1)
     }
+}
 
-    @ViewBuilder
-    private var settingsOverlay: some View {
-        if showingSettings {
+private struct SettingsOverlay: View {
+    let isPresented: Bool
+    let onDismiss: () -> Void
+
+    var body: some View {
+        if isPresented {
             ZStack {
-                Color.black.opacity(0.55)
-                    .ignoresSafeArea()
-                    .contentShape(Rectangle())
-                    .onTapGesture { closeSettings() }
-                    .transition(.opacity)
+                // Scrim is a Button (not onTapGesture) so VoiceOver, Switch
+                // Control, and visionOS eye tracking treat the dismiss zone
+                // as an actuator instead of skipping it.
+                Button(action: onDismiss) {
+                    Color.black.opacity(0.55)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity)
+                .accessibilityLabel("Dismiss settings")
+                .accessibilityAddTraits(.isButton)
 
-                SettingsView(onDismiss: closeSettings)
+                SettingsView(onDismiss: onDismiss)
                     .transition(.scale(scale: 0.92).combined(with: .opacity))
             }
             // Keep the card anchored when the keyboard appears — without
@@ -106,16 +130,6 @@ struct ContentView: View {
             // the keyboard.
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
-    }
-
-    // MARK: - Transitions
-
-    private func openSettings() {
-        withAnimation(overlaySpring) { showingSettings = true }
-    }
-
-    private func closeSettings() {
-        withAnimation(overlaySpring) { showingSettings = false }
     }
 }
 
