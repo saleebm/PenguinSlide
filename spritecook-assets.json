@@ -54,5 +54,11 @@
     "label": "iOS app icon — penguin sliding on icy slope, pixel-art aesthetic, 1024x1024 opaque. Generated with reference_asset_id=penguin_base.",
     "asset_path": "PenguinSlide/Assets.xcassets/AppIcon.appiconset/icon-1024.png",
     "source_raw_path": "build/icon-preview/penguin-icon-raw.png"
+  },
+  "sky_backdrop": {
+    "asset_id": "960ae818-9bbc-493a-a2df-09aeeb646b48",
+    "sha12_local": "2b8d31183844",
+    "label": "Arctic sky backdrop — layered snowy mountains, clouds, icicle corners, snowdrift foreground. Pixel art, 16:9. Downsampled from 5504×3072 raw to 2048×1143 for ship. Used as launch screen AspectFill and in-game SkyBackdrop in GameScene.swift:161.",
+    "asset_path": "PenguinSlide/Assets.xcassets/SkyBackdrop.imageset/sky.png"
   }
 }

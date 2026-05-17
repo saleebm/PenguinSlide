@@ -23,11 +23,10 @@
 	<key>NSMotionUsageDescription</key>
 	<string>Penguin Slide uses motion data so you can tilt your phone to slide the penguin left
 			and right.</string>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string></string>
-	</dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>

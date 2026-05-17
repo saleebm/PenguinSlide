@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		092B8C38D4962800E9141AD4 /* PlayerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE6E684FEE33AD911D663AA /* PlayerProfile.swift */; };
+		1BD6A4D8F51F9FC7EFFD03FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 52C42F2C413D59E50192E153 /* LaunchScreen.storyboard */; };
 		35DA976299301CC5C7B25719 /* icicle_crack.caf in Resources */ = {isa = PBXBuildFile; fileRef = B809643F24F3F8B1319A96D9 /* icicle_crack.caf */; };
 		3971E4F7B06782DD42A19DB1 /* PenguinSlideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */; };
 		3B639DB303C3763F6E68488E /* icicle_shatter.caf in Resources */ = {isa = PBXBuildFile; fileRef = BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */; };
@@ -25,6 +26,7 @@
 		CAD15EEB35AB73F60CAE2071 /* PenguinTuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */; };
 		D7C0B672746BA0AED42897D8 /* IcicleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E31931172B9E867D83B8D8D /* IcicleSystem.swift */; };
 		E38A0144C16F29B8DF0ABE95 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53A0CCA084635603ABEC6EF /* SettingsView.swift */; };
+		EDAA19E27EB82E87209DA291 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 95C6064A8DE239DA8B98B570 /* PrivacyInfo.xcprivacy */; };
 		EF2828D7D54909F723B43A5E /* game_over.caf in Resources */ = {isa = PBXBuildFile; fileRef = 939B1F4AC669CBFEB2D9EB26 /* game_over.caf */; };
 /* End PBXBuildFile section */
 
@@ -39,26 +41,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0C45BDA2544B44B0CC714240 /* bg_music.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = bg_music.caf; sourceTree = "<group>"; };
+		0C45BDA2544B44B0CC714240 /* bg_music.caf */ = {isa = PBXFileReference; path = bg_music.caf; sourceTree = "<group>"; };
 		1E31931172B9E867D83B8D8D /* IcicleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IcicleSystem.swift; sourceTree = "<group>"; };
 		24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
 		26FF0981C3921F2D698B0A34 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		326731CF1FAC96F9BE8C1AEF /* PenguinSlideUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideUITests.swift; sourceTree = "<group>"; };
 		386AF075E100933C2E0A5135 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
-		3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = penguin_cry.caf; sourceTree = "<group>"; };
+		3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */ = {isa = PBXFileReference; path = penguin_cry.caf; sourceTree = "<group>"; };
 		50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinTuning.swift; sourceTree = "<group>"; };
+		52C42F2C413D59E50192E153 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		54E0CFF73FD77DABD504F490 /* Tuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tuning.swift; sourceTree = "<group>"; };
 		5BE6E684FEE33AD911D663AA /* PlayerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProfile.swift; sourceTree = "<group>"; };
 		6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinAnimations.swift; sourceTree = "<group>"; };
-		8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PenguinSlide.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		939B1F4AC669CBFEB2D9EB26 /* game_over.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = game_over.caf; sourceTree = "<group>"; };
+		8FE9398BA63F565F4A52EC4B /* PenguinSlide.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PenguinSlide.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		939B1F4AC669CBFEB2D9EB26 /* game_over.caf */ = {isa = PBXFileReference; path = game_over.caf; sourceTree = "<group>"; };
+		95C6064A8DE239DA8B98B570 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A1D0F7E9EA7CE05166615F38 /* Penguin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Penguin.swift; sourceTree = "<group>"; };
 		B53A0CCA084635603ABEC6EF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = icicle_crack.caf; sourceTree = "<group>"; };
-		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = icicle_shatter.caf; sourceTree = "<group>"; };
+		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; path = icicle_crack.caf; sourceTree = "<group>"; };
+		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; path = icicle_shatter.caf; sourceTree = "<group>"; };
 		D0CFBF8AD6B81B08376C9596 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		D99E76E15B607531E1E9A2C2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenguinSlideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PenguinSlideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -109,11 +113,13 @@
 				D0CFBF8AD6B81B08376C9596 /* GameScene.swift */,
 				386AF075E100933C2E0A5135 /* HUDController.swift */,
 				1E31931172B9E867D83B8D8D /* IcicleSystem.swift */,
+				52C42F2C413D59E50192E153 /* LaunchScreen.storyboard */,
 				A1D0F7E9EA7CE05166615F38 /* Penguin.swift */,
 				6888CA63AC828682A54FAF2C /* PenguinAnimations.swift */,
 				E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */,
 				50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */,
 				5BE6E684FEE33AD911D663AA /* PlayerProfile.swift */,
+				95C6064A8DE239DA8B98B570 /* PrivacyInfo.xcprivacy */,
 				B53A0CCA084635603ABEC6EF /* SettingsView.swift */,
 				24C243B58E89153FFB9B9568 /* SpriteCatalog.swift */,
 				54E0CFF73FD77DABD504F490 /* Tuning.swift */,
@@ -168,7 +174,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2650;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					36DD02D52F6DBC62C57F7CE0 = {
 						DevelopmentTeam = L7U86T3YRV;
@@ -207,6 +213,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C2272A9B4D0173D8CC62DD09 /* Assets.xcassets in Resources */,
+				1BD6A4D8F51F9FC7EFFD03FF /* LaunchScreen.storyboard in Resources */,
+				EDAA19E27EB82E87209DA291 /* PrivacyInfo.xcprivacy in Resources */,
 				6C671DDEC56C138E56B2B4B0 /* bg_music.caf in Resources */,
 				EF2828D7D54909F723B43A5E /* game_over.caf in Resources */,
 				35DA976299301CC5C7B25719 /* icicle_crack.caf in Resources */,
@@ -331,7 +339,6 @@
 				DEVELOPMENT_TEAM = L7U86T3YRV;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -352,7 +359,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -375,10 +381,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlide;
 				PRODUCT_NAME = PenguinSlide;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -399,10 +401,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.copt.PenguinSlide;
 				PRODUCT_NAME = PenguinSlide;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -446,7 +444,6 @@
 				DEVELOPMENT_TEAM = L7U86T3YRV;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -460,7 +457,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
