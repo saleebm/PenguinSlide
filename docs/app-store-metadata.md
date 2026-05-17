@@ -52,8 +52,10 @@ UserDefaults stays on-device): **Data Not Collected** across all categories.
 ## Build
 
 - [ ] CFBundleShortVersionString and CFBundleVersion bumped via `scripts/bump-version.sh`
-- [ ] Archive built in Xcode → uploaded to ASC
-- [ ] Build selected in the version's Build section
+- [ ] `scripts/archive.sh` → produces `build/PenguinSlide.xcarchive` + `build/export/PenguinSlide.ipa`
+- [ ] `scripts/upload.sh` → uploads to ASC via altool (needs `ASC_APPLE_ID` + `ASC_APP_PASSWORD` env vars; the password is an app-specific password from https://account.apple.com)
+  - Fallback: drag `build/export/PenguinSlide.ipa` into **Transporter.app**
+- [ ] Build selected in the version's Build section in ASC
 
 ## Screenshots
 
