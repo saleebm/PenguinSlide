@@ -28,6 +28,7 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     PlayerSection(accent: accent, name: $name)
+                    GameplaySection(accent: accent)
                     HowToPlaySection(accent: accent)
                     AboutSection(accent: accent)
                 }
@@ -142,6 +143,73 @@ private struct PlayerSection: View {
                     .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
             )
         }
+    }
+}
+
+private struct GameplaySection: View {
+    let accent: Color
+    // Seeded from the persisted tuning so the slider opens on whatever
+    // the player last chose, not the default.
+    @State private var speed: Double = Double(Tuning.Penguin.maxSpeed)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                SectionLabel(text: "Gameplay", accent: accent)
+                Spacer()
+                Button("Reset") {
+                    speed = Double(PenguinTuning.speedDefault)
+                    persist(speed)
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(accent)
+                .accessibilityLabel("Reset penguin speed to default")
+            }
+            HStack(spacing: 12) {
+                Image(systemName: "hare.fill")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .frame(width: 22, alignment: .center)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Penguin Speed")
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("\(Int(speed))")
+                            .monospacedDigit()
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                    Slider(
+                        value: $speed,
+                        in: Double(PenguinTuning.speedRange.lowerBound)...Double(PenguinTuning.speedRange.upperBound),
+                        step: 10
+                    ) { editing in
+                        // Commit on release so a drag doesn't thrash
+                        // UserDefaults on every intermediate value.
+                        if !editing { persist(speed) }
+                    }
+                    .tint(accent)
+                    .accessibilityValue(Text("\(Int(speed)) points per second"))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+            )
+        }
+    }
+
+    // Penguin reads `Tuning.Penguin.maxSpeed` every frame, so this
+    // takes effect live in any active game without a scene reload.
+    private func persist(_ value: Double) {
+        Tuning.Penguin.maxSpeed = CGFloat(value)
+        Tuning.Penguin.saveToUserDefaults()
     }
 }
 

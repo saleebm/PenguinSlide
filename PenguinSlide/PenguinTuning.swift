@@ -23,8 +23,15 @@ struct PenguinTuning: Codable {
 
     // MARK: - Speed & input feel
 
+    /// Inclusive bounds the Settings slider exposes. Lower bound feels
+    /// like a tutorial pace; upper bound is challenging without making
+    /// the play-corridor clamp dominate the feel.
+    static let speedRange: ClosedRange<CGFloat> = 800...1420
+    /// Default top speed for fresh installs and the Reset button.
+    static let speedDefault: CGFloat = 1100
+
     /// How fast the penguin slides at full tilt (points/sec).
-    var maxSpeed: CGFloat = 1000
+    var maxSpeed: CGFloat = PenguinTuning.speedDefault
     /// Tilt response curve exponent. >1 makes small tilts gentler and
     /// rewards bigger tilts with disproportionately more speed.
     var tiltCurve: CGFloat = 1.5
