@@ -123,9 +123,9 @@ enum Tuning {
         /// Initial grace period with no spawns so the player can get oriented.
         static let gracePeriod: TimeInterval = 1.2
         /// Penguin is confined to this fraction of the screen width, centered.
-        /// Sides show open water — squeezes the dodge corridor without hidden
-        /// "instant death" zones. Icicles only spawn within this strip.
-        static let playWidthFraction: CGFloat = 0.62
+        /// Sides show a thin band of open water so the shore edges still read
+        /// as a platform; icicles only spawn within this strip.
+        static let playWidthFraction: CGFloat = 0.96
     }
 }
 

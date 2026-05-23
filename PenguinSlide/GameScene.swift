@@ -242,7 +242,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func currentTilt() -> CGFloat {
         var tilt: CGFloat = 0
         if let gravity = motionManager.deviceMotion?.gravity {
-            tilt = CGFloat(gravity.y)
+            // CoreMotion reports gravity in the device-fixed frame, so the
+            // sign of gravity.y flips between LandscapeLeft and LandscapeRight.
+            // iPhone is locked to LandscapeLeft; iPad allows both, so we
+            // mirror tilt input when the interface is in LandscapeRight.
+            let sign: CGFloat = (view?.window?.windowScene?.interfaceOrientation == .landscapeRight) ? -1 : 1
+            tilt = CGFloat(gravity.y) * sign
             if abs(tilt) < 0.04 { tilt = 0 }
         }
         if tilt == 0, let kb = GCKeyboard.coalesced?.keyboardInput {
