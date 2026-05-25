@@ -5,8 +5,8 @@ Automated test scripts for PenguinSlide. All scripts live at the repo root and s
 ## Prereqs
 
 - Xcode 26+ with an iPhone 17 Pro simulator available
-- `xcodegen` (`brew install xcodegen`) — same as the build scripts
-- `agent-device >= 0.14.0` on `PATH` — only needed for `test-smoke.sh` and `test-perf.sh`
+- `xcodegen` (`brew install xcodegen`; same dependency the build scripts use)
+- `agent-device >= 0.14.0` on `PATH` (only needed for `test-smoke.sh` and `test-perf.sh`)
 
 Verify agent-device:
 
@@ -32,7 +32,7 @@ All outputs land in `./test-evidence/` and are gitignored.
 
 Drives the full UI loop with agent-device: launch → title screen → tap start → mid-run screenshot → force game-over via the debug hook → tap to play again → screenshot. Saves four PNGs to `test-evidence/`.
 
-Why it terminates deterministically: it taps the `debugForceGameOver` accessibility node installed by `GameScene` under `#if DEBUG`. Decouples the test from physics timing.
+Termination is deterministic: tapping the `debugForceGameOver` accessibility node installed by `GameScene` under `#if DEBUG` routes through the game-over path directly, so the test never depends on physics timing.
 
 ```
 ./test-smoke.sh                       # uses booted iPhone 17 Pro
@@ -79,7 +79,7 @@ Run against a physical device for full perf coverage.
 
 ## `test-xcui.sh` and the XCUITest target
 
-Runs the `PenguinSlideUITests` target via `xcodebuild test`. xcodebuild builds the app, installs to the sim, runs the suite — no `run-sim.sh` chaining needed.
+Runs the `PenguinSlideUITests` target via `xcodebuild test`. xcodebuild builds the app, installs to the sim, and runs the suite; no `run-sim.sh` chaining needed.
 
 ```
 ./test-xcui.sh
@@ -118,8 +118,8 @@ The target and scheme are wired in `project.yml`. Re-run `xcodegen generate` aft
 - agent-device: `agent-device press 'label="debugForceGameOver"'`
 - XCUITest: `app.otherElements["debugForceGameOver"].tap()`
 
-If a test starts failing with "element not found", first check that the build is Debug (the node is excluded from Release). Then verify the accessibility tree with `agent-device snapshot -i` — the node sits at the top-left and surfaces alongside the score and start prompt.
+If a test starts failing with "element not found", first check that the build is Debug (the node is excluded from Release). Then verify the accessibility tree with `agent-device snapshot -i`; the node sits at the top-left and surfaces alongside the score and start prompt.
 
 ## Output directory
 
-`test-evidence/` holds the screenshots and `perf.json`. It's gitignored — clear it any time with `rm -rf test-evidence/`.
+`test-evidence/` holds the screenshots and `perf.json`. It's gitignored; clear it any time with `rm -rf test-evidence/`.

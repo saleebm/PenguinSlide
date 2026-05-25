@@ -10,13 +10,13 @@ Tilt-controlled iOS game where a penguin slides on ice to dodge cracking, fallin
 1. **Xcode → New Project → App** (iOS). Interface: **SwiftUI**. Language: **Swift**. Name it `PenguinSlide`.
 2. Delete the auto-generated `ContentView.swift` and `PenguinSlideApp.swift`.
 3. Drag the entire `PenguinSlide/` source folder into the project (check "Copy items if needed"). This brings in all Swift files (`PenguinSlideApp`, `ContentView`, `GameScene`, `Penguin`, `PenguinAnimations`, `PenguinTuning`, `Tuning`, `IcicleSystem`, `HUDController`, `SpriteCatalog`, `SettingsView`, `PlayerProfile`) along with `Assets.xcassets` and the `Sounds/` directory.
-4. **Motion permission** — required, or CoreMotion crashes on first use.
+4. **Motion permission**: required, or CoreMotion crashes on first use.
    - In Xcode 15+, the default project uses a generated Info.plist (no file). To add the motion key: select your target → **Info** tab → under **Custom iOS Target Properties** add a new row:
      - Key: `Privacy - Motion Usage Description`
      - Value: `Penguin Slide uses motion to slide the penguin when you tilt your phone.`
    - **Or** drop the included `Info.plist` into the project and set **Build Settings → Info.plist File** to `PenguinSlide/Info.plist`, and **Generate Info.plist File** = **No**.
-5. **Orientation** — target → **General** → **Deployment Info**: uncheck Landscape Left/Right (portrait only).
-6. Run on a **physical device** — the simulator has no real gyro. ⌘R.
+5. **Orientation**: target → **General** → **Deployment Info** → uncheck Landscape Left/Right (portrait only).
+6. Run on a **physical device**. The simulator has no real gyro. ⌘R.
 
 ## Testing
 
@@ -33,13 +33,13 @@ See [TESTING.md](TESTING.md) for the automated test scripts (`test-smoke.sh`, `t
 
 Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 
-### `Tuning.Penguin` — input & feel
+### `Tuning.Penguin`: input & feel
 
 | Knob | Effect |
 |---|---|
 | `maxSpeed` | How responsive the penguin is to tilt. Points/sec at full tilt. |
 | `tiltCurve` | Tilt → speed curve exponent. 1 = linear, >1 rewards aggressive tilts, <1 makes small tilts twitchier. |
-| `collisionRadiusFraction` | Hitbox radius as a fraction of sprite width. Sized so the hitbox reaches above the ice line into the icicle's fall path — lower it for a more forgiving hitbox at the cost of icicles passing through the upper sprite without contact. |
+| `collisionRadiusFraction` | Hitbox radius as a fraction of sprite width. Sized so the hitbox reaches above the ice line into the icicle's fall path. Lower it for a more forgiving hitbox, at the cost of icicles passing through the upper sprite without contact. |
 | `tiltResponseRate` | Velocity-toward-target rate while tilting. Higher = snappier accel. |
 | `iceDecayRate` | Velocity decay rate when no tilt is held. Lower = longer glide after release. |
 | `leanMaxAngle` | Max body lean angle in radians (~0.30 ≈ 17°). |
@@ -51,7 +51,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `iFrameFlashHz` | Sprite-alpha flicker frequency during i-frames. |
 | `knockbackImpulseScale` | Sideways shove on hit, as a fraction of `maxSpeed`. 0.5 ≈ ±360 pt/s impulse that `iceDecayRate` settles within ~1 s. |
 
-### `Tuning.Icicle` — telegraph & per-icicle gravity
+### `Tuning.Icicle`: telegraph & per-icicle gravity
 
 | Knob | Effect |
 |---|---|
@@ -64,7 +64,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `massKg` | Mass for restitution math against the penguin. Manual gravity ignores it. |
 | `restitution` | 0–1 bounciness of an icicle as it recoils off the penguin. The recoil itself is applied manually. |
 
-### `Tuning.Chase` — aim algorithm
+### `Tuning.Chase`: aim algorithm
 
 | Knob | Effect |
 |---|---|
@@ -72,7 +72,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `jitterStart / End` | Random spread around the aim point, as a fraction of ice-strip width. Start = early game (loose); End = late game (tight). |
 | `randomChance` | Fraction of spawns that ignore the penguin and pick a random column. Keeps the field unpredictable. |
 
-### `Tuning.Feel` — impact polish
+### `Tuning.Feel`: impact polish
 
 | Knob | Effect |
 |---|---|
@@ -85,7 +85,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `crackBurstShards` | Shard count for a confirmed-damage penguin hit (separate from the landing-on-ice burst). |
 | `crackBurstSpeedScale` | Pop-speed multiplier for the penguin-contact crack burst. |
 
-### `Tuning.Run` — round-level pacing
+### `Tuning.Run`: round-level pacing
 
 | Knob | Effect |
 |---|---|
@@ -96,7 +96,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 ## Notes on the code
 
 - Uses `CMMotionManager.startDeviceMotionUpdates()` (single instance, no callback queue) and reads `deviceMotion.gravity.x` synchronously from the SpriteKit `update(_:)` loop. This is the recommended pattern: fused sensor data, no main-queue callback storm, frame-locked.
-- The penguin physics body is dynamic but `collisionBitMask = 0` — we drive position manually each frame, and knockback is applied directly to the penguin's `vx`. SpriteKit isn't allowed to displace the penguin, so the manual position writes are the single source of truth.
+- The penguin physics body is dynamic but `collisionBitMask = 0`; we drive position manually each frame, and knockback is applied directly to the penguin's `vx`. SpriteKit isn't allowed to displace the penguin, so the manual position writes are the single source of truth.
 - Icicles have no physics body during the warning phase, then gain a dynamic body with `usesPreciseCollisionDetection = true` the moment they detach. The latter prevents tunneling at peak fall speeds (≈15 pt/frame at 60 fps).
 - Hit response is two-sided: the penguin loses HP via `tryTakeHit` (with i-frames gating consecutive damage), and IcicleSystem.onIcicleHitPenguin manually recoils the icicle and emits the crack burst. Both sides agree on direction so the visuals feel coherent.
 - Scene is held in `@State` in `ContentView` so SwiftUI redraws don't recreate it (a known iOS 15-era footgun that's still the correct pattern to avoid).
@@ -123,7 +123,7 @@ Tracking, analytics, or data collection of any kind
 In-app purchases
 Daily login streaks designed to guilt you
 
-The game runs entirely on your device. Your high score lives on your phone and nowhere else. If you delete the app, you delete the data - there is no copy anywhere.
+The game runs entirely on your device. Your high score lives on your phone and nowhere else. If you delete the app, you delete the data. There is no copy anywhere.
 Built for the kind of moments where you want to play something for two minutes without committing to anything. Waiting for the kettle. Standing in line. The thirty seconds before a meeting starts.
-Best played with sound on - but it'll mix with your music if you'd rather have your own soundtrack to penguin survival.
+Best played with sound on, but it'll mix with your music if you'd rather have your own soundtrack to penguin survival.
 Tilt left. Tilt right. Don't get hit. Beat your last run.

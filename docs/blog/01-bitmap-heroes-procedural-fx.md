@@ -1,14 +1,14 @@
 # Bitmap heroes, procedural FX: a mixed asset strategy
 
-When the penguin slides across the ice in PenguinSlide, every visible thing on screen falls into one of two buckets. The penguin, the icicle, the ice tile, the sky — all bitmap PNGs in `Assets.xcassets`, rendered through SpriteKit's texture loader. The snow puff when an icicle detaches, the icy-blue chips that pop on impact, the red heart in the corner — none of those have an image file. They're drawn at runtime out of `UIBezierPath`s and ellipses, cached once, then reused thousands of times.
+When the penguin slides across the ice in PenguinSlide, every visible thing on screen falls into one of two buckets. The penguin, the icicle, the ice tile, the sky: all bitmap PNGs in `Assets.xcassets`, rendered through SpriteKit's texture loader. The snow puff when an icicle detaches, the icy-blue chips that pop on impact, the red heart in the corner: none of those have an image file. They're drawn at runtime out of `UIBezierPath`s and ellipses, cached once, then reused thousands of times.
 
 Two pipelines, one game. We didn't set out to do this; it's what we ended up with after asking, for each thing on screen, what does it cost to ship a PNG?
 
 ## When the answer is "ship the PNG"
 
-The penguin has character. There are five poses — idle, slide, hurt, victory, and the base sprite — and the difference between them is the shape of the eyes, the angle of the body, the position of the flippers. None of that is parametric. You can't generate "penguin looking scared" from a function. Pixel art is the medium *because* every pixel was a choice.
+The penguin has character. There are five poses (idle, slide, hurt, victory, and the base sprite), and the difference between them is the shape of the eyes, the angle of the body, the position of the flippers. None of that is parametric. You can't generate "penguin looking scared" from a function. Pixel art is the medium *because* every pixel was a choice.
 
-So the penguin gets bitmaps. The icicle is the same story — it's a hand-drawn ice shape with highlights that suggest depth. The sky backdrop has a gradient and a couple of clouds. The ice tile has a specific frost pattern that tiles cleanly. All of these have identity.
+So the penguin gets bitmaps. The icicle is the same story: a hand-drawn ice shape with highlights that suggest depth. The sky backdrop has a gradient and a couple of clouds. The ice tile has a specific frost pattern that tiles cleanly. All of these have identity.
 
 Eight imagesets total:
 
@@ -42,7 +42,7 @@ There's also a `tiled(_:size:)` helper that takes a small bitmap and tiles it ac
 
 ## When the answer is "don't ship the PNG"
 
-Now look at a snow puff. It's a white circle, three pixels in radius. There's nothing to draw — the *concept* is "white circle," and the function `UIGraphicsImageRenderer` plus `fillEllipse(in:)` produces it in three lines:
+Now look at a snow puff. It's a white circle, three pixels in radius. There's nothing to draw: the *concept* is "white circle," and the function `UIGraphicsImageRenderer` plus `fillEllipse(in:)` produces it in three lines:
 
 ```swift
 // PenguinSlide/IcicleSystem.swift:67
@@ -59,7 +59,7 @@ private lazy var puffTexture: SKTexture = {
 }()
 ```
 
-A shatter shard is the same idea, one rung up: an 8x8 icy-blue triangle, drawn with three `addLine(to:)` calls. The heart icon in the HUD is the most fun one — two arcs and a V, rendered into a 24x22 bitmap exactly once, then reused for the three hearts that count the penguin's HP. Look at `HUDController.swift:96`:
+A shatter shard is the same idea, one rung up: an 8x8 icy-blue triangle, drawn with three `addLine(to:)` calls. The heart icon in the HUD is the most fun one: two arcs and a V, rendered into a 24x22 bitmap exactly once, then reused for the three hearts that count the penguin's HP. Look at `HUDController.swift:96`:
 
 ```swift
 // PenguinSlide/HUDController.swift:96
@@ -84,11 +84,11 @@ private static func buildHeartTexture() -> SKTexture {
 }
 ```
 
-The shipped binary doesn't include `heart.png` because the heart isn't an image, it's a recipe.
+The shipped binary doesn't include `heart.png` because the heart is a recipe, not an image.
 
 ## What the split costs
 
-Every choice has a price. Worth being honest about them.
+Every choice has a price.
 
 - **Procedural shapes lose pixel-art identity.** A `UIBezierPath` heart is smooth and curvy. It will never look hand-pixeled. Fine for HUD glyphs; wrong for hero sprites.
 - **Procedural shapes are harder to iterate on.** Adjusting the shape means editing code and recompiling. You can't drop a new PNG into Xcode and reload.
@@ -103,6 +103,6 @@ Don't pick one pipeline and apply it religiously. Ask the question per-object:
 
 > Does this thing have identity, or is it a parametric shape?
 
-If it has identity — pixel-perfect eyes, a particular silhouette, animation frames — ship the bitmap. If it's a circle, a triangle, two arcs, or a procedural pattern parameterized by size and color, draw it at runtime. You'll end up with a few imagesets for the things that matter and a handful of `lazy var someTexture: SKTexture = { ... }()` blocks for everything else.
+If it has identity (pixel-perfect eyes, a particular silhouette, animation frames), ship the bitmap. If it's a circle, a triangle, two arcs, or a procedural pattern parameterized by size and color, draw it at runtime. You'll end up with a few imagesets for the things that matter and a handful of `lazy var someTexture: SKTexture = { ... }()` blocks for everything else.
 
 The mistake is treating the choice as ideological. "Asset-free games" is a vanity metric. "PNG everything" is asset bloat. The interesting line is the one between the two, and it runs through the question above.

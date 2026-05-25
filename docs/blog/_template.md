@@ -1,6 +1,6 @@
 # Post template
 
-Each post in this series follows the same five-section shape. Keep posts tight — 600 to 1,200 words. Code blocks should be real (copy from the repo, never invent) and short (15-30 lines is the sweet spot; link to the file for the rest).
+Each post in this series follows the same five-section shape. Keep posts tight (600 to 1,200 words). Code blocks should be real (copy from the repo, never invent) and short; 15-30 lines is the sweet spot, and you can link to the file for the rest.
 
 ---
 
@@ -41,7 +41,7 @@ Two to four sentences. What's the broader pattern? When should a reader reach fo
 - Numbers when you have them. `2-3 icicles/sec` beats `lots of icicles`.
 - No filler openers ("Let's dive in", "Buckle up", "In this post we'll explore").
 - No hedging closer ("Hopefully this was useful"). If it was useful, the reader knows.
-- Cite repo files inline as `path/to/File.swift:NN`. Link to commits sparingly — the repo history was reset, so only commits after `1c253ac` will resolve.
+- Cite repo files inline as `path/to/File.swift:NN`. Link to commits sparingly, since the repo history was reset; only commits after `1c253ac` will resolve.
 - One image, max, if at all. Code is the visual.
 
 ## Frontmatter (optional)

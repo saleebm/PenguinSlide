@@ -1,6 +1,6 @@
-# Building PenguinSlide — blog series
+# Building PenguinSlide: blog series
 
-Eight posts on what we built and what we learned shipping a tilt-controlled SpriteKit + SwiftUI game on iOS. Mined from agent session history and the source tree, written for other developers — not for marketing, not for the team retro.
+Eight posts on what we built and what we learned shipping a tilt-controlled SpriteKit + SwiftUI game on iOS. Mined from agent session history and the source tree, written for other developers, not for marketing, and not for the team retro.
 
 ## The posts
 
@@ -20,15 +20,15 @@ Eight posts on what we built and what we learned shipping a tilt-controlled Spri
 
 Start with the prequel for context on how the raw materials got made, then move into the runtime decisions:
 
-1. **00** — Bootstrapping the asset pipeline *(how the sprites and audio got here)*
-2. **01** — Bitmap heroes, procedural FX *(rendering split)*
-3. **05** — Per-icicle gravity *(working around the engine)*
-4. **04** — I-frames as game feel *(state contract)*
-5. **02** — Haptic budget *(feedback layer 1)*
-6. **03** — Arcade audio layering *(feedback layer 2)*
-7. **06** — Live tuning *(workflow turn)*
-8. **07** — Screen-lock bug *(a war story)*
-9. **08** — Debug accessibility hook *(testing rigor)*
+1. **00** Bootstrapping the asset pipeline *(how the sprites and audio got here)*
+2. **01** Bitmap heroes, procedural FX *(rendering split)*
+3. **05** Per-icicle gravity *(working around the engine)*
+4. **04** I-frames as game feel *(state contract)*
+5. **02** Haptic budget *(feedback layer 1)*
+6. **03** Arcade audio layering *(feedback layer 2)*
+7. **06** Live tuning *(workflow turn)*
+8. **07** Screen-lock bug *(a war story)*
+9. **08** Debug accessibility hook *(testing rigor)*
 
 ## About the project
 

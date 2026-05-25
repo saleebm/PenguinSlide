@@ -23,7 +23,7 @@ override func update(_ currentTime: TimeInterval) {
 
 That `lastUpdateTime == 0 ? 0 : ...` is a sentinel for "first frame, no previous to compare against." It works at game start. It works on restart. It does *not* work when the OS suspends the app.
 
-When you lock your phone, iOS stops calling `update(_:)`. The game pauses, in the sense that nothing renders. But `lastUpdateTime` retains its last value — say, `T = 1234.567`. Thirty seconds later, you unlock. The next `update(_:)` arrives with `currentTime = 1264.567`. The sentinel doesn't fire because `lastUpdateTime != 0`. So:
+When you lock your phone, iOS stops calling `update(_:)`. The game pauses, in the sense that nothing renders. But `lastUpdateTime` retains its last value (say, `T = 1234.567`). Thirty seconds later, you unlock. The next `update(_:)` arrives with `currentTime = 1264.567`. The sentinel doesn't fire because `lastUpdateTime != 0`. So:
 
 ```
 dt = 1264.567 - 1234.567 = 30.0
@@ -31,16 +31,16 @@ dt = 1264.567 - 1234.567 = 30.0
 
 Thirty *seconds* of `dt` in a single frame. Everything downstream integrates that thirty-second step in one go:
 
-- `elapsed += 30.0` — the round clock jumps ahead by 30 seconds
-- `score = Int(elapsed * 10)` — score balloons by 300
-- `penguin.update(dt: 30.0, ...)` — the penguin's velocity decays, lean spring oscillates 30 seconds in one step, alpha flicker phase scrambles
-- `icicles.update(dt: 30.0, ...)` — every falling icicle integrates `v += g * 30.0`, teleporting them at terminal velocity through the floor; spawn cadence advances; the difficulty ramp jumps
+- `elapsed += 30.0`: the round clock jumps ahead by 30 seconds
+- `score = Int(elapsed * 10)`: score balloons by 300
+- `penguin.update(dt: 30.0, ...)`: the penguin's velocity decays, lean spring oscillates 30 seconds in one step, alpha flicker phase scrambles
+- `icicles.update(dt: 30.0, ...)`: every falling icicle integrates `v += g * 30.0`, teleporting them at terminal velocity through the floor; spawn cadence advances; the difficulty ramp jumps
 
 The frame after that, everything renders correctly again. But the round is now 30 seconds older than the player thinks, with score and difficulty to match. Sometimes the penguin is dead. Always the score is wrong.
 
 ## What we changed
 
-The fix is to treat the *resume event* as a frame-time discontinuity — same as game start, same as restart — and reset the sentinel:
+The fix is to treat the *resume event* as a frame-time discontinuity (same as game start, same as restart) and reset the sentinel:
 
 ```swift
 // PenguinSlide/GameScene.swift:114
@@ -71,7 +71,7 @@ private func observeAppLifecycle() {
 }
 ```
 
-The first line of `handleDidBecomeActive` is the real fix: `lastUpdateTime = 0`. The next `update(_:)` hits the sentinel branch, computes `dt = 0`, and the round resumes exactly where it left off. Score, elapsed time, falling icicles — all preserved as of the moment the user locked their phone.
+The first line of `handleDidBecomeActive` is the real fix: `lastUpdateTime = 0`. The next `update(_:)` hits the sentinel branch, computes `dt = 0`, and the round resumes exactly where it left off. Score, elapsed time, falling icicles: all preserved as of the moment the user locked their phone.
 
 ## The pattern is symmetric
 
