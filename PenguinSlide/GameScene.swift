@@ -236,18 +236,34 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         motionManager.startDeviceMotionUpdates()
     }
 
-    /// Read current tilt: CoreMotion gravity.y for the device, GCKeyboard
-    /// fallback for the simulator. Output is in [-1, 1] with a small
-    /// dead zone to suppress flat-phone drift.
+    /// Rotate CoreMotion's device-frame gravity into interface (screen) space.
+    /// Device frame: +x device-right, +y device-top (when held in portrait).
+    /// Interface frame: +x screen-right, +y screen-up. The mapping depends on
+    /// how UIKit has rotated the interface relative to the device.
+    private func screenGravity(_ gravity: CMAcceleration) -> CGVector {
+        let interface = view?.window?.windowScene?.interfaceOrientation ?? .landscapeLeft
+        let gx = CGFloat(gravity.x)
+        let gy = CGFloat(gravity.y)
+        switch interface {
+        case .landscapeLeft:      return CGVector(dx:  gy, dy: -gx)
+        case .landscapeRight:     return CGVector(dx: -gy, dy:  gx)
+        case .portraitUpsideDown: return CGVector(dx: -gx, dy: -gy)
+        case .portrait:           return CGVector(dx:  gx, dy:  gy)
+        case .unknown:            return CGVector(dx:  gy, dy: -gx)
+        @unknown default:         return CGVector(dx:  gy, dy: -gx)
+        }
+    }
+
+    /// Read current tilt: CoreMotion gravity projected onto the screen's
+    /// horizontal axis, with a GCKeyboard fallback for the simulator.
+    /// Output is in [-1, 1] with a small dead zone to suppress flat-phone drift.
     private func currentTilt() -> CGFloat {
         var tilt: CGFloat = 0
         if let gravity = motionManager.deviceMotion?.gravity {
-            // CoreMotion reports gravity in the device-fixed frame, so the
-            // sign of gravity.y flips between LandscapeLeft and LandscapeRight.
-            // iPhone is locked to LandscapeLeft; iPad allows both, so we
-            // mirror tilt input when the interface is in LandscapeRight.
-            let sign: CGFloat = (view?.window?.windowScene?.interfaceOrientation == .landscapeRight) ? -1 : 1
-            tilt = CGFloat(gravity.y) * sign
+            // CoreMotion reports gravity in the device-fixed frame. Rotate it
+            // into interface coordinates so `screenGravity.dx` is always
+            // "tilt-right is positive," regardless of orientation.
+            tilt = screenGravity(gravity).dx
             if abs(tilt) < 0.04 { tilt = 0 }
         }
         if tilt == 0, let kb = GCKeyboard.coalesced?.keyboardInput {
