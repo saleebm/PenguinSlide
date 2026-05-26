@@ -53,7 +53,8 @@ struct SettingsView: View {
         )
         .shadow(color: .black.opacity(0.45), radius: 28, x: 0, y: 14)
         .padding(.horizontal, 20)
-        .frame(maxWidth: 480)
+        .padding(.vertical, 40)
+        .frame(maxWidth: 480, maxHeight: .infinity)
         .colorScheme(.dark)             // force light-on-dark legibility over the scrim
         // Commit the typed name no matter how the modal goes away (X
         // button, scrim tap, or background dismiss). Without this, a
@@ -149,8 +150,10 @@ private struct PlayerSection: View {
 private struct GameplaySection: View {
     let accent: Color
     // Seeded from the persisted tuning so the slider opens on whatever
-    // the player last chose, not the default.
-    @State private var speed: Double = Double(Tuning.Penguin.maxSpeed)
+    // the player last chose, not the default. One knob drives speed,
+    // tilt response rate, and tilt curve together so the input always
+    // feels proportionate at any setting — see PenguinTuning.derived(from:).
+    @State private var intensity: Double = Double(Tuning.Penguin.tiltIntensity)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -158,38 +161,38 @@ private struct GameplaySection: View {
                 SectionLabel(text: "Gameplay", accent: accent)
                 Spacer()
                 Button("Reset") {
-                    speed = Double(PenguinTuning.speedDefault)
-                    persist(speed)
+                    intensity = Double(PenguinTuning.tiltIntensityDefault)
+                    persist(intensity)
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(accent)
-                .accessibilityLabel("Reset penguin speed to default")
+                .accessibilityLabel("Reset tilt response to default")
             }
             HStack(spacing: 12) {
-                Image(systemName: "hare.fill")
+                Image(systemName: "iphone.gen3.radiowaves.left.and.right")
                     .font(.title3)
                     .foregroundStyle(accent)
                     .frame(width: 22, alignment: .center)
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("Penguin Speed")
-                            .foregroundStyle(.white)
-                        Spacer()
-                        Text("\(Int(speed))")
-                            .monospacedDigit()
-                            .foregroundStyle(.white.opacity(0.85))
+                    Text("Tilt Response")
+                        .foregroundStyle(.white)
+                    // Bottom-aligned so the slider's track sits at icon
+                    // level while the "Calm"/"Wild" caption floats above.
+                    HStack(alignment: .bottom, spacing: 10) {
+                        EndCapLabel(text: "Calm", systemImage: "tortoise.fill")
+                        Slider(
+                            value: $intensity,
+                            in: Double(PenguinTuning.tiltIntensityRange.lowerBound)...Double(PenguinTuning.tiltIntensityRange.upperBound),
+                            step: 0.01
+                        ) { editing in
+                            // Commit on release so a drag doesn't thrash
+                            // UserDefaults on every intermediate value.
+                            if !editing { persist(intensity) }
+                        }
+                        .tint(accent)
+                        .accessibilityValue(Text("\(Int(intensity * 100)) percent"))
+                        EndCapLabel(text: "Wild", systemImage: "hare.fill")
                     }
-                    Slider(
-                        value: $speed,
-                        in: Double(PenguinTuning.speedRange.lowerBound)...Double(PenguinTuning.speedRange.upperBound),
-                        step: 10
-                    ) { editing in
-                        // Commit on release so a drag doesn't thrash
-                        // UserDefaults on every intermediate value.
-                        if !editing { persist(speed) }
-                    }
-                    .tint(accent)
-                    .accessibilityValue(Text("\(Int(speed)) points per second"))
                 }
             }
             .padding(.horizontal, 14)
@@ -205,10 +208,10 @@ private struct GameplaySection: View {
         }
     }
 
-    // Penguin reads `Tuning.Penguin.maxSpeed` every frame, so this
-    // takes effect live in any active game without a scene reload.
+    // Penguin reads the derived fields every frame, so this takes
+    // effect live in any active game without a scene reload.
     private func persist(_ value: Double) {
-        Tuning.Penguin.maxSpeed = CGFloat(value)
+        Tuning.Penguin.applyTiltIntensity(CGFloat(value))
         Tuning.Penguin.saveToUserDefaults()
     }
 }
@@ -268,6 +271,22 @@ private struct SectionLabel: View {
             .font(.system(.caption, design: .rounded).weight(.heavy))
             .tracking(1.6)
             .foregroundStyle(accent.opacity(0.85))
+    }
+}
+
+private struct EndCapLabel: View {
+    let text: String
+    let systemImage: String
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(text)
+                .font(.system(.caption2, design: .rounded).weight(.medium))
+            Image(systemName: systemImage)
+                .font(.footnote)
+        }
+        .foregroundStyle(.white.opacity(0.55))
+        .accessibilityHidden(true)        // slider's accessibilityValue already conveys position
     }
 }
 

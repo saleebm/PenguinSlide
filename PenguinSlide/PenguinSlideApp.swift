@@ -19,6 +19,13 @@ struct PenguinSlideApp: App {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, options: [.mixWithOthers])
         try? session.setActive(true)
+
+        #if DEBUG && targetEnvironment(simulator)
+        // CoreMotion is unavailable in the simulator and `xcrun simctl`
+        // can't inject motion; this listener lets scripts/inject-tilt.sh
+        // drive the penguin for sim-only manual testing.
+        MotionInjector.shared.start()
+        #endif
     }
 
     var body: some Scene {

@@ -107,7 +107,7 @@ The target and scheme are wired in `project.yml`. Re-run `xcodegen generate` aft
 ## Known gotchas
 
 - **Two iPhone 17 Pro UDIDs.** iOS 26.4 and 26.5 each provide an `iPhone 17 Pro` simulator. The test scripts pick the booted one via `xcrun simctl list devices booted | grep "iPhone 17 Pro"` and pass `--udid` so agent-device doesn't match the wrong one by name when both are booted.
-- **No gyro on simulator.** The Simulator's keyboard fallback (← / → / A / D) needs `I/O → Input → Send Keyboard Input to Device` (⌘⇧K) enabled. agent-device can't synthesize that reliably, so real gameplay validation requires a physical device.
+- **No gyro on simulator.** The Simulator's keyboard fallback (← / → / A / D) needs `I/O → Input → Send Keyboard Input to Device` (⌘⇧K) enabled. agent-device can't synthesize that reliably, so real gameplay validation requires a physical device. For scripted sim runs, see **Simulator tilt injection** below.
 - **Simulator perf gaps.** See the `test-perf.sh` table above.
 - **The `Tap to start` accessibility label drives everything.** Both `test-smoke.sh` and the XCUITests target SpriteKit nodes by their `label="..."`. If those labels change (e.g. localization, copy edits), update the tests at the same time.
 
@@ -119,6 +119,19 @@ The target and scheme are wired in `project.yml`. Re-run `xcodegen generate` aft
 - XCUITest: `app.otherElements["debugForceGameOver"].tap()`
 
 If a test starts failing with "element not found", first check that the build is Debug (the node is excluded from Release). Then verify the accessibility tree with `agent-device snapshot -i`; the node sits at the top-left and surfaces alongside the score and start prompt.
+
+## Simulator tilt injection
+
+`xcrun simctl` has no `motion` subcommand and CoreMotion is dead in the Simulator, so a DEBUG-only listener in the app (`MotionInjector`, port `127.0.0.1:7654`) accepts newline-delimited JSON frames and feeds them to `GameScene.currentTilt()` ahead of the keyboard fallback. Pattern is inspired by [sammyd/accelesender](https://github.com/sammyd/accelesender) — kept dependency-free via `Network.framework`.
+
+```
+./scripts/inject-tilt.sh  0.7   # slide right
+./scripts/inject-tilt.sh -0.7   # slide left
+./scripts/inject-tilt.sh  0     # glide to stop
+PORT=7654 ./scripts/inject-tilt.sh 0.5
+```
+
+Samples older than ~500 ms are ignored — re-send periodically (or pipe a stream into `nc`) to hold a tilt. Only active in `#if DEBUG && targetEnvironment(simulator)`; Release and device builds are unaffected.
 
 ## Output directory
 

@@ -23,24 +23,63 @@ struct PenguinTuning: Codable {
 
     // MARK: - Speed & input feel
 
-    /// Inclusive bounds the Settings slider exposes. Lower bound feels
+    /// Inclusive bounds for the derived top-speed value. Lower bound feels
     /// like a tutorial pace; upper bound is challenging without making
     /// the play-corridor clamp dominate the feel.
-    static let speedRange: ClosedRange<CGFloat> = 800...1420
-    /// Default top speed for fresh installs and the Reset button.
-    static let speedDefault: CGFloat = 1100
+    static let speedRange: ClosedRange<CGFloat> = 850...1950
+    /// Default top speed for fresh installs (kept as a fallback for
+    /// migration math; new installs seed from `tiltIntensityDefault`).
+    static let speedDefault: CGFloat = 1125
 
-    /// How fast the penguin slides at full tilt (points/sec).
+    /// Normalised "feel" knob the Settings slider exposes. 0 = calm,
+    /// 1 = wild. Drives `maxSpeed`, `tiltResponseRate`, and `tiltCurve`
+    /// in lockstep so the input always feels proportionate at any setting.
+    static let tiltIntensityRange: ClosedRange<CGFloat> = 0...1
+    /// Default tilt-intensity. Inverse of `derived(from:)` at speed≈1100
+    /// to preserve the pre-refactor feel for fresh installs.
+    static let tiltIntensityDefault: CGFloat = 0.25
+
+    /// Persisted feel position. Source of truth for the derived trio
+    /// below; mutate via `applyTiltIntensity(_:)` so the derived fields
+    /// stay coherent.
+    var tiltIntensity: CGFloat = PenguinTuning.tiltIntensityDefault
+    /// How fast the penguin slides at full tilt (points/sec). Derived
+    /// from `tiltIntensity`.
     var maxSpeed: CGFloat = PenguinTuning.speedDefault
     /// Tilt response curve exponent. >1 makes small tilts gentler and
-    /// rewards bigger tilts with disproportionately more speed.
+    /// rewards bigger tilts with disproportionately more speed. Derived
+    /// from `tiltIntensity` (more linear as intensity rises).
     var tiltCurve: CGFloat = 1.5
     /// How quickly the penguin's velocity approaches the tilt-target.
-    /// Lower = slippier; higher = snappier. Per second; ~10 is near-instant.
+    /// Lower = slippier; higher = snappier. Derived from `tiltIntensity`
+    /// (snappier as intensity rises) so the top end doesn't feel sluggish.
     var tiltResponseRate: CGFloat = 5.0
     /// Velocity decay rate when no tilt is held (asymmetric friction).
     /// Accel uses `tiltResponseRate` — this lets the penguin glide.
     var iceDecayRate: CGFloat = 0.7
+
+    /// Pure mapping from a 0...1 intensity to the three derived fields.
+    /// Bumping intensity raises top speed *and* keeps inputs responsive
+    /// at that speed — neither dimension wins at the other's expense.
+    static func derived(from t: CGFloat) -> (maxSpeed: CGFloat,
+                                              tiltResponseRate: CGFloat,
+                                              tiltCurve: CGFloat) {
+        let c = max(0, min(1, t))
+        return (maxSpeed:         850.0 + c * 1100.0,
+                tiltResponseRate: 4.0   + c * 2.0,
+                tiltCurve:        1.5   - c * 0.2)
+    }
+
+    /// Set intensity and recompute the derived trio together. Settings
+    /// UI and the migration path both go through here, so the three
+    /// fields can never drift out of sync with `tiltIntensity`.
+    mutating func applyTiltIntensity(_ t: CGFloat) {
+        let d = Self.derived(from: t)
+        tiltIntensity = max(0, min(1, t))
+        maxSpeed = d.maxSpeed
+        tiltResponseRate = d.tiltResponseRate
+        tiltCurve = d.tiltCurve
+    }
 
     // MARK: - Body
 
@@ -115,6 +154,60 @@ struct PenguinTuning: Codable {
     var shieldRingColor: SKColor { Self.defaultShieldRingColor }
     private static let defaultShieldRingColor =
         SKColor(red: 0.5, green: 0.9, blue: 1.0, alpha: 1.0)
+
+    // MARK: - Codable migration
+
+    // Default memberwise init re-declared so the custom `init(from:)`
+    // below doesn't shadow it. Routes through `applyTiltIntensity` so the
+    // derived trio (maxSpeed/rate/curve) stays coherent with the current
+    // `derived(from:)` formula even when the var-level defaults drift.
+    init() { applyTiltIntensity(Self.tiltIntensityDefault) }
+
+    // Migration path: pre-feel-knob data has `maxSpeed` but no
+    // `tiltIntensity`. We synthesise intensity from the stored speed
+    // using the inverse of `derived(from:)`, then route through
+    // `applyTiltIntensity` so the three derived fields end up coherent
+    // (the on-disk `tiltResponseRate`/`tiltCurve`, if any, are
+    // intentionally overwritten — they were never user-tunable).
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        iceDecayRate     = (try? c.decode(CGFloat.self, forKey: .iceDecayRate))     ?? iceDecayRate
+        collisionRadiusFraction = (try? c.decode(CGFloat.self, forKey: .collisionRadiusFraction)) ?? collisionRadiusFraction
+        massKg           = (try? c.decode(CGFloat.self, forKey: .massKg))           ?? massKg
+        leanMaxAngle     = (try? c.decode(CGFloat.self, forKey: .leanMaxAngle))     ?? leanMaxAngle
+        leanStiffness    = (try? c.decode(CGFloat.self, forKey: .leanStiffness))    ?? leanStiffness
+        leanDampingRatio = (try? c.decode(CGFloat.self, forKey: .leanDampingRatio)) ?? leanDampingRatio
+        maxHealth        = (try? c.decode(Int.self,     forKey: .maxHealth))        ?? maxHealth
+        iFrameDuration   = (try? c.decode(TimeInterval.self, forKey: .iFrameDuration)) ?? iFrameDuration
+        iFrameFlashHz    = (try? c.decode(CGFloat.self, forKey: .iFrameFlashHz))    ?? iFrameFlashHz
+        iFrameDimAlpha   = (try? c.decode(CGFloat.self, forKey: .iFrameDimAlpha))   ?? iFrameDimAlpha
+        shieldRingLineWidth   = (try? c.decode(CGFloat.self, forKey: .shieldRingLineWidth))   ?? shieldRingLineWidth
+        shieldRingPulsePeriod = (try? c.decode(TimeInterval.self, forKey: .shieldRingPulsePeriod)) ?? shieldRingPulsePeriod
+        idleSlideThresholdPtPerSec = (try? c.decode(CGFloat.self, forKey: .idleSlideThresholdPtPerSec)) ?? idleSlideThresholdPtPerSec
+        animationFps          = (try? c.decode(Double.self,  forKey: .animationFps))          ?? animationFps
+        knockbackImpulseScale = (try? c.decode(CGFloat.self, forKey: .knockbackImpulseScale)) ?? knockbackImpulseScale
+
+        if let t = try? c.decode(CGFloat.self, forKey: .tiltIntensity) {
+            applyTiltIntensity(t)
+        } else if let oldMax = try? c.decode(CGFloat.self, forKey: .maxSpeed) {
+            // Frozen against the v1 anchors (speed range 800..2000) so a
+            // user who set maxSpeed under the original formula lands on
+            // the same slider position after `derived(from:)` is retuned.
+            applyTiltIntensity((oldMax - 800.0) / 1200.0)
+        } else {
+            applyTiltIntensity(Self.tiltIntensityDefault)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case tiltIntensity, maxSpeed, tiltCurve, tiltResponseRate, iceDecayRate
+        case collisionRadiusFraction, massKg
+        case leanMaxAngle, leanStiffness, leanDampingRatio
+        case maxHealth, iFrameDuration, iFrameFlashHz, iFrameDimAlpha
+        case shieldRingLineWidth, shieldRingPulsePeriod
+        case idleSlideThresholdPtPerSec, animationFps
+        case knockbackImpulseScale
+    }
 
     // MARK: - Persistence
 

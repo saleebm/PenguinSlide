@@ -258,6 +258,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     /// horizontal axis, with a GCKeyboard fallback for the simulator.
     /// Output is in [-1, 1] with a small dead zone to suppress flat-phone drift.
     private func currentTilt() -> CGFloat {
+        #if DEBUG && targetEnvironment(simulator)
+        // Sim-only injection takes precedence so manual scripts can
+        // drive the penguin without fighting the keyboard fallback.
+        // Stale samples (>0.5 s) are ignored so a disconnected injector
+        // can't pin the penguin.
+        if let s = MotionInjector.shared.latestTilt,
+           Date().timeIntervalSince(s.at) < 0.5 {
+            return max(-1, min(1, s.value))
+        }
+        #endif
         var tilt: CGFloat = 0
         if let gravity = motionManager.deviceMotion?.gravity {
             // CoreMotion reports gravity in the device-fixed frame. Rotate it
