@@ -13,6 +13,7 @@
 		35DA976299301CC5C7B25719 /* icicle_crack.caf in Resources */ = {isa = PBXBuildFile; fileRef = B809643F24F3F8B1319A96D9 /* icicle_crack.caf */; };
 		3971E4F7B06782DD42A19DB1 /* PenguinSlideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */; };
 		3B639DB303C3763F6E68488E /* icicle_shatter.caf in Resources */ = {isa = PBXBuildFile; fileRef = BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */; };
+		43DE188B58624482E06FF814 /* HighScores.swift in Sources */ = {isa = PBXBuildFile; fileRef = C840855C24C7E3A4AD4527FE /* HighScores.swift */; };
 		4ABC8A845AD7621F378C4DF8 /* Penguin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0F7E9EA7CE05166615F38 /* Penguin.swift */; };
 		4F3382049AD7BB97AB37082E /* penguin_cry.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3D6A20FD716F958E3A5F1EAC /* penguin_cry.caf */; };
 		59B1C8A65E290028B05E4C71 /* Tuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E0CFF73FD77DABD504F490 /* Tuning.swift */; };
@@ -24,6 +25,7 @@
 		C222A54FB176BF55566F1898 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E76E15B607531E1E9A2C2 /* ContentView.swift */; };
 		C2272A9B4D0173D8CC62DD09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26FF0981C3921F2D698B0A34 /* Assets.xcassets */; };
 		C68010E4550552A7776CFA0F /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CFBF8AD6B81B08376C9596 /* GameScene.swift */; };
+		C914BCC3C9A55A72B85C2546 /* GameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AE96E15C18850F12A4BEBF /* GameOverView.swift */; };
 		CAD15EEB35AB73F60CAE2071 /* PenguinTuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A4F4B1E32071518DA0E3AC /* PenguinTuning.swift */; };
 		D7C0B672746BA0AED42897D8 /* IcicleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E31931172B9E867D83B8D8D /* IcicleSystem.swift */; };
 		E38A0144C16F29B8DF0ABE95 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53A0CCA084635603ABEC6EF /* SettingsView.swift */; };
@@ -61,10 +63,12 @@
 		B53A0CCA084635603ABEC6EF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B809643F24F3F8B1319A96D9 /* icicle_crack.caf */ = {isa = PBXFileReference; path = icicle_crack.caf; sourceTree = "<group>"; };
 		BDFF09321F5885EC97D74DC7 /* icicle_shatter.caf */ = {isa = PBXFileReference; path = icicle_shatter.caf; sourceTree = "<group>"; };
+		C840855C24C7E3A4AD4527FE /* HighScores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighScores.swift; sourceTree = "<group>"; };
 		D0CFBF8AD6B81B08376C9596 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		D99E76E15B607531E1E9A2C2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E0B32D09B8B8BD2537AC6E8A /* PenguinSlideUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PenguinSlideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E22C210B684BECC41C98FF15 /* PenguinSlideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenguinSlideApp.swift; sourceTree = "<group>"; };
+		F2AE96E15C18850F12A4BEBF /* GameOverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverView.swift; sourceTree = "<group>"; };
 		F7E047D313FC27F6F730CF92 /* MotionInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionInjector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,7 +116,9 @@
 			children = (
 				26FF0981C3921F2D698B0A34 /* Assets.xcassets */,
 				D99E76E15B607531E1E9A2C2 /* ContentView.swift */,
+				F2AE96E15C18850F12A4BEBF /* GameOverView.swift */,
 				D0CFBF8AD6B81B08376C9596 /* GameScene.swift */,
+				C840855C24C7E3A4AD4527FE /* HighScores.swift */,
 				386AF075E100933C2E0A5135 /* HUDController.swift */,
 				1E31931172B9E867D83B8D8D /* IcicleSystem.swift */,
 				52C42F2C413D59E50192E153 /* LaunchScreen.storyboard */,
@@ -234,8 +240,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				C222A54FB176BF55566F1898 /* ContentView.swift in Sources */,
+				C914BCC3C9A55A72B85C2546 /* GameOverView.swift in Sources */,
 				C68010E4550552A7776CFA0F /* GameScene.swift in Sources */,
 				82076EBAEF3597549D04EF24 /* HUDController.swift in Sources */,
+				43DE188B58624482E06FF814 /* HighScores.swift in Sources */,
 				D7C0B672746BA0AED42897D8 /* IcicleSystem.swift in Sources */,
 				1B207962BEEC339D03D815F9 /* MotionInjector.swift in Sources */,
 				4ABC8A845AD7621F378C4DF8 /* Penguin.swift in Sources */,

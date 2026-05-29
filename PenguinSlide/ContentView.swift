@@ -13,6 +13,9 @@ struct ContentView: View {
     // a known footgun on early iOS 15 betas and is still the right pattern.
     @State private var scene: GameScene?
     @State private var showingSettings = false
+    /// Non-nil while the game-over page is up. Holds the finished round's
+    /// result so GameOverView can render the score and new-best state.
+    @State private var gameResult: GameResult?
 
     private let overlaySpring = Animation.spring(response: 0.38, dampingFraction: 0.82)
 
@@ -34,7 +37,9 @@ struct ContentView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                if scene != nil {
+                // Hide the gear during game-over so it can't poke through
+                // the page (which has no settings entry of its own).
+                if scene != nil && gameResult == nil {
                     GearButton(isHidden: showingSettings, action: openSettings)
                         .transition(.opacity)
                 }
@@ -42,10 +47,18 @@ struct ContentView: View {
             .overlay {
                 SettingsOverlay(isPresented: showingSettings, onDismiss: closeSettings)
             }
+            .overlay {
+                GameOverOverlay(result: gameResult, onPlayAgain: playAgain)
+            }
             .onAppear {
                 if scene == nil {
                     let s = GameScene(size: proxy.size)
                     s.scaleMode = .resizeFill
+                    // The scene freezes itself on death and fires this; we
+                    // surface the SwiftUI page over the frozen scene.
+                    s.onGameOver = { result in
+                        withAnimation(overlaySpring) { gameResult = result }
+                    }
                     withAnimation(overlaySpring) { scene = s }
                 }
             }
@@ -70,6 +83,13 @@ struct ContentView: View {
 
     private func closeSettings() {
         withAnimation(overlaySpring) { showingSettings = false }
+    }
+
+    private func playAgain() {
+        // Resume the frozen scene first, then dismiss the page so the fresh
+        // round is already running underneath as the overlay animates out.
+        scene?.playAgain()
+        withAnimation(overlaySpring) { gameResult = nil }
     }
 }
 
@@ -128,6 +148,31 @@ private struct SettingsOverlay: View {
             // squashed/pushed upward as the keyboard slides in. The name
             // field is at the top of the card so it stays visible above
             // the keyboard.
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+        }
+    }
+}
+
+private struct GameOverOverlay: View {
+    let result: GameResult?
+    let onPlayAgain: () -> Void
+
+    var body: some View {
+        if let result {
+            ZStack {
+                // Dimming scrim only — unlike the settings scrim it is NOT a
+                // dismiss actuator: the round is over, so the only ways out
+                // are "Play Again" or "Share". The frozen scene shows through.
+                Color.black.opacity(0.55)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .accessibilityHidden(true)
+
+                GameOverView(result: result, onPlayAgain: onPlayAgain)
+                    .transition(.scale(scale: 0.92).combined(with: .opacity))
+            }
+            // Keep the card anchored when the keyboard slides in for the
+            // name field — same rationale as SettingsOverlay.
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
     }

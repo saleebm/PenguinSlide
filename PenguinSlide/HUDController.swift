@@ -2,10 +2,11 @@
 //  HUDController.swift
 //  PenguinSlide
 //
-//  Score, best, start prompt, and game-over overlay. Pure presentation —
+//  Score, best, hearts, start prompt, and death flash. Pure presentation —
 //  doesn't read game state or drive transitions. GameScene calls the
-//  setScore / setBest / showStartPrompt / showGameOver / dismiss* APIs to
-//  keep the UI in sync.
+//  setScore / setBest / setHealth / showStartPrompt / triggerDeathFlash APIs
+//  to keep the UI in sync. The game-over page itself is SwiftUI
+//  (GameOverView), presented by ContentView off GameScene.onGameOver.
 //
 
 import SpriteKit
@@ -18,7 +19,6 @@ final class HUDController {
 
     private let scoreLabel: SKLabelNode
     private let bestLabel: SKLabelNode
-    private var gameOverOverlay: SKNode?
 
     private let heartTexture: SKTexture
     private var hearts: [SKSpriteNode] = []
@@ -165,7 +165,7 @@ final class HUDController {
         ]))
     }
 
-    // MARK: - Death flash + game-over panel
+    // MARK: - Death flash
 
     func triggerDeathFlash() {
         guard let scene else { return }
@@ -175,52 +175,5 @@ final class HUDController {
         flash.zPosition = 200
         scene.addChild(flash)
         flash.run(.sequence([.fadeOut(withDuration: 0.35), .removeFromParent()]))
-    }
-
-    func showGameOver(score: Int, best: Int) {
-        guard let scene else { return }
-        let overlay = SKNode()
-        overlay.zPosition = 300
-
-        let panel = SKShapeNode(rectOf: CGSize(width: sceneSize.width * 0.78, height: 200),
-                                cornerRadius: 22)
-        panel.position = CGPoint(x: sceneSize.width / 2, y: sceneSize.height / 2)
-        panel.fillColor = UIColor(white: 1.0, alpha: 0.95)
-        panel.strokeColor = UIColor(white: 0.7, alpha: 0.6)
-        panel.lineWidth = 1
-        overlay.addChild(panel)
-
-        let title = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Heavy"))
-        title.text = "Brrr!"
-        title.fontSize = 34
-        title.fontColor = UIColor(red: 0.18, green: 0.28, blue: 0.42, alpha: 1)
-        title.position = CGPoint(x: panel.position.x, y: panel.position.y + 50)
-        overlay.addChild(title)
-
-        let scoreL = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Bold"))
-        scoreL.text = "Score \(score)    Best \(max(score, best))"
-        scoreL.fontSize = 18
-        scoreL.fontColor = UIColor(white: 0.2, alpha: 0.9)
-        scoreL.position = CGPoint(x: panel.position.x, y: panel.position.y + 10)
-        overlay.addChild(scoreL)
-
-        let tap = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Bold"))
-        tap.text = "Tap to play again"
-        tap.fontSize = 20
-        tap.fontColor = UIColor(red: 0.18, green: 0.28, blue: 0.42, alpha: 1)
-        tap.position = CGPoint(x: panel.position.x, y: panel.position.y - 50)
-        tap.run(.repeatForever(.sequence([
-            .fadeAlpha(to: 0.5, duration: 0.6),
-            .fadeAlpha(to: 1.0, duration: 0.6)
-        ])))
-        overlay.addChild(tap)
-
-        scene.addChild(overlay)
-        gameOverOverlay = overlay
-    }
-
-    func dismissGameOver() {
-        gameOverOverlay?.removeFromParent()
-        gameOverOverlay = nil
     }
 }

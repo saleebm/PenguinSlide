@@ -12,7 +12,20 @@ import CoreMotion
 import UIKit
 import GameController
 
+/// Outcome of a finished round, handed to the SwiftUI game-over page.
+struct GameResult {
+    let score: Int
+    /// True when this run beat the previously stored best, so the page can
+    /// celebrate it. Computed against `best_score` before it's overwritten.
+    let isNewBest: Bool
+}
+
 final class GameScene: SKScene, SKPhysicsContactDelegate {
+
+    /// Fired once per round when the penguin dies. ContentView listens and
+    /// presents the game-over page; the scene stays frozen underneath until
+    /// `playAgain()` is called. Set by ContentView right after construction.
+    var onGameOver: ((GameResult) -> Void)?
 
     private let motionManager = CMMotionManager()
     private var gameCamera: SKCameraNode!
@@ -312,9 +325,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             hud.dismissStartPrompt()
             return
         }
-        if isGameOver {
-            restart()
-        }
+        // Restart is no longer a tap-on-scene action: while game-over, the
+        // SwiftUI page sits on top (and captures taps) and its "Play Again"
+        // button calls `playAgain()`.
     }
 
     // MARK: - Update loop
@@ -371,10 +384,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = true
 
         let best = bestScore()
-        if score > best {
+        let isNewBest = score > best
+        if isNewBest {
             UserDefaults.standard.set(score, forKey: "best_score")
             // Keep the top-of-screen HUD in sync with the new record; without
-            // this, the player sees a stale "Best" until they tap to restart.
+            // this, the player sees a stale "Best" until they restart.
             hud.setBest(score)
         }
 
@@ -385,19 +399,24 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         gen.notificationOccurred(.error)
         run(gameOverSound)
 
-        hud.showGameOver(score: score, best: best)
-
         // Freeze in-flight icicles AND pause shard fade actions per-node.
         // physicsWorld.speed = 0 halts physics-driven motion, but SKActions
         // (the shard fadeOut) run independently — pausing them keeps the
         // world consistently frozen.
         physicsWorld.speed = 0
         icicles.pauseShardActions()
+
+        // Hand off to the SwiftUI game-over page. The frozen scene stays
+        // visible (dimmed) behind it, and `playAgain()` resumes from there.
+        onGameOver?(GameResult(score: score, isNewBest: isNewBest))
     }
+
+    /// Driven by the game-over page's "Play Again" button. ContentView
+    /// dismisses the page and calls this to resume from a fresh round.
+    func playAgain() { restart() }
 
     private func restart() {
         icicles.reset()
-        hud.dismissGameOver()
 
         physicsWorld.speed = 1
         gameCamera.removeAction(forKey: "shake")

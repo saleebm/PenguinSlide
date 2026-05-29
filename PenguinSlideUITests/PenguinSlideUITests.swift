@@ -30,8 +30,10 @@ final class PenguinSlideUITests: XCTestCase {
         // wait and decouples the test from icicle timing.
         app.otherElements["debugForceGameOver"].tap()
 
-        let tapAgain = app.otherElements["Tap to play again"]
-        XCTAssertTrue(tapAgain.waitForExistence(timeout: 2))
+        // Game-over is now the SwiftUI GameOverView page (presented by
+        // ContentView), so the restart control is a button, not an SK label.
+        let playAgain = app.buttons["Play Again"]
+        XCTAssertTrue(playAgain.waitForExistence(timeout: 2))
     }
 
     func testRestartReturnsToPlayableState() throws {
@@ -41,13 +43,13 @@ final class PenguinSlideUITests: XCTestCase {
         app.otherElements["Tap to start"].tap()
         app.otherElements["debugForceGameOver"].tap()
 
-        let tapAgain = app.otherElements["Tap to play again"]
-        XCTAssertTrue(tapAgain.waitForExistence(timeout: 2))
-        tapAgain.tap()
+        let playAgain = app.buttons["Play Again"]
+        XCTAssertTrue(playAgain.waitForExistence(timeout: 2))
+        playAgain.tap()
 
-        // The overlay should clear and a fresh playable scene resume.
+        // The page should dismiss and a fresh playable scene resume.
         // We can't easily assert a fresh score 0 since play starts immediately,
-        // but the game-over overlay should be gone for at least a moment.
-        XCTAssertFalse(app.otherElements["Tap to play again"].exists)
+        // but the game-over page should be gone shortly after.
+        XCTAssertTrue(playAgain.waitForNonExistence(timeout: 2))
     }
 }
