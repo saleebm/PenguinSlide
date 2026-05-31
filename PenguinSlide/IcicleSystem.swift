@@ -51,6 +51,7 @@ final class IcicleSystem {
     }
     private var fallingIcicles: [FallingIcicle] = []
     private var activeShards:   [FallingBody] = []
+    private var activeBursts: [SKSpriteNode] = []
 
     // Pre-warmed haptic generators. Medium for accepted hits (HP loss);
     // light for i-frame-blocked saves and for shake-radius ground landings.
@@ -200,8 +201,10 @@ final class IcicleSystem {
         scene.enumerateChildNodes(withName: "icicleShadow") { node, _ in node.removeFromParent() }
         for entry in activeShards { entry.node?.removeFromParent() }
         for entry in fallingIcicles { entry.shadow?.removeFromParent() }
+        for b in activeBursts { b.removeFromParent() }
         fallingIcicles.removeAll(keepingCapacity: true)
         activeShards.removeAll(keepingCapacity: true)
+        activeBursts.removeAll()
         timeSinceLastSpawn = 0
         nextSpawnInterval = Tuning.Icicle.spawnIntervalStart
     }
@@ -212,6 +215,7 @@ final class IcicleSystem {
     /// and the world looks half-paused.
     func pauseShardActions() {
         for entry in activeShards { entry.node?.isPaused = true }
+        for b in activeBursts { b.isPaused = true }
     }
 
     /// Called by GameScene when an icicle's physics body contacts the penguin.
@@ -243,6 +247,7 @@ final class IcicleSystem {
             playLandingShatter(distance: 0)
             cryAudioNode?.run(cryRestart)
             shatterIcicle(at: contactPoint, severity: 1.0,
+                          scale: max(icicle.size.width / 45, 1.2),
                           countOverride: Tuning.Feel.crackBurstShards,
                           speedScaleOverride: Tuning.Feel.crackBurstSpeedScale)
             screenShake(near: contactPoint.x)
@@ -252,6 +257,7 @@ final class IcicleSystem {
             hapticLight.impactOccurred()
             playLandingShatter(distance: 0)
             shatterIcicle(at: contactPoint, severity: 0.6,
+                          scale: icicle.size.width / 45,
                           countOverride: Tuning.Feel.shardCountMax,
                           speedScaleOverride: 1.2)
         }
@@ -494,7 +500,8 @@ final class IcicleSystem {
                 // collisions resolve reliably.
                 let dx = abs(landingPoint.x - penguin.node.position.x)
                 let severity = max(0, 1 - dx / Tuning.Feel.shakeRadius)
-                shatterIcicle(at: landingPoint, severity: severity)
+                shatterIcicle(at: landingPoint, severity: severity,
+                              scale: icicle.size.width / 45)
 
                 // Audio fires on *every* landing, just quieter the further it
                 // is from the penguin. Haptic + screen shake stay close-only —
@@ -532,7 +539,7 @@ final class IcicleSystem {
     /// `severity` ∈ [0, 1] scales shard count and launch speed for landings;
     /// the `countOverride` / `speedScaleOverride` params let the penguin-hit
     /// path pump up the burst beyond what severity alone would produce.
-    private func shatterIcicle(at p: CGPoint, severity: CGFloat,
+    private func shatterIcicle(at p: CGPoint, severity: CGFloat, scale: CGFloat = 1.0,
                                countOverride: Int? = nil,
                                speedScaleOverride: CGFloat? = nil) {
         guard let scene else { return }
@@ -576,27 +583,23 @@ final class IcicleSystem {
             ]))
         }
 
-        // Shockwave ring: a quick expanding/fading circle stamped at the
-        // landing point. Reinforces "the icicle hit *this* spot on the
-        // surface the penguin is on." Gated on severity so distant landings
-        // (which already get only a small shard burst and no shake) don't
-        // strobe a ring every frame at peak spawn rate.
-        if s >= Tuning.Feel.shockwaveMinSeverity {
-            let ring = SKShapeNode(circleOfRadius: 6)
-            ring.position = p
-            ring.zPosition = 6
-            ring.strokeColor = UIColor(white: 1.0, alpha: 0.9)
-            ring.fillColor = .clear
-            ring.lineWidth = 2
-            scene.addChild(ring)
-            ring.run(.sequence([
-                .group([
-                    .scale(to: Tuning.Feel.shockwaveMaxScale,
-                           duration: Tuning.Feel.shockwaveDuration),
-                    .fadeOut(withDuration: Tuning.Feel.shockwaveDuration)
-                ]),
-                .removeFromParent()
-            ]))
+        // Animated icy-chunk burst (SpriteCook). Sized by severity × icicle scale.
+        let burstSize = Tuning.Feel.shatterBaseSize
+            * (Tuning.Feel.shatterMinScale + (1 - Tuning.Feel.shatterMinScale) * s)
+            * scale
+        let burst = SKSpriteNode(texture: IcicleAnimations.shatterFrames.first)
+        burst.size = CGSize(width: burstSize, height: burstSize)
+        // Lift the burst above the impact point so it blooms upward off the
+        // surface instead of rendering half-buried at the ground line.
+        burst.position = CGPoint(x: p.x, y: p.y + burstSize * 0.35)
+        burst.zPosition = 7
+        scene.addChild(burst)
+        activeBursts.append(burst)
+        let anim = SKAction.animate(with: IcicleAnimations.shatterFrames,
+                                    timePerFrame: 1.0 / TimeInterval(Tuning.Feel.shatterAnimFps),
+                                    resize: false, restore: false)
+        burst.run(.sequence([anim, .removeFromParent()])) { [weak self, weak burst] in
+            self?.activeBursts.removeAll { $0 === burst || $0.parent == nil }
         }
     }
 

@@ -1,4 +1,13 @@
 {
+  "icicle_base": { "asset_id": "13bb4052-5fb1-4403-a647-31cd67aa81cc", "label": "Base icicle still; source for the shatter animation." },
+  "icicle_shatter": {
+    "asset_id": "6f533faa-e866-4a2f-9c42-3cea9ae0a4fa",
+    "sha12": "34cf55676dd4",
+    "label": "Icicle shatter one-shot — 8 frames, 94x94 each, 14fps. Icy chunk burst + frost puff. Source: icicle_base.",
+    "frames": 8, "frame_size": "94x94", "fps": 14,
+    "output_format": "spritesheet", "loops": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/IcicleShatter.imageset/icicle_shatter.png"
+  },
   "penguin_base": {
     "asset_id": "000c7725-d56a-43d7-8d2a-99c516b92677",
     "sha12_local": "a051b3a21905",

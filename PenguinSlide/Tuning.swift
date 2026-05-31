@@ -71,8 +71,8 @@ enum Tuning {
     enum Feel {
         /// Shard count interpolates from min (distant landings) to max
         /// (direct hits), keyed off the same falloff used by camera shake.
-        static let shardCountMin: Int = 3
-        static let shardCountMax: Int = 8
+        static let shardCountMin: Int = 2
+        static let shardCountMax: Int = 5
         /// Base launch speed; severity adds up to +shardSeverityBoost.
         static let shardLaunchSpeed: CGFloat = 220
         static let shardSeverityBoost: CGFloat = 0.30   // +30% pop on direct hits
@@ -83,7 +83,7 @@ enum Tuning {
         static let shakeRadius: CGFloat = 140
         /// Shard count when an icicle hits the penguin directly (separate
         /// from the landing-on-ice burst, which uses `shardCountMin/Max`).
-        static let crackBurstShards: Int = 14
+        static let crackBurstShards: Int = 8
         /// Pop-speed multiplier for the penguin-contact crack burst.
         static let crackBurstSpeedScale: CGFloat = 1.6
 
@@ -96,12 +96,10 @@ enum Tuning {
         static let shadowMinAlpha: CGFloat = 0.15
         static let shadowMaxAlpha: CGFloat = 0.55
 
-        /// Quick expanding ring at impact — reads as "the ice cracked here."
-        /// Only fires when severity > `shockwaveMinSeverity` so distant
-        /// landings don't strobe a ring every frame at peak spawn rate.
-        static let shockwaveMaxScale: CGFloat = 3.0
-        static let shockwaveDuration: TimeInterval = 0.25
-        static let shockwaveMinSeverity: CGFloat = 0.2
+        // Animated shatter burst (SpriteCook spritesheet).
+        static let shatterAnimFps: CGFloat = 14      // N frames ≈ N/14 s
+        static let shatterBaseSize: CGFloat = 110    // pt, full-severity burst footprint
+        static let shatterMinScale: CGFloat = 0.55   // severity floor for burst size
 
         /// Landings play their shatter clip at every distance, with linear
         /// volume falloff from `landingAudioMaxVolume` at the penguin's x
@@ -123,9 +121,10 @@ enum Tuning {
         /// Initial grace period with no spawns so the player can get oriented.
         static let gracePeriod: TimeInterval = 1.2
         /// Penguin is confined to this fraction of the screen width, centered.
-        /// Sides show a thin band of open water so the shore edges still read
-        /// as a platform; icicles only spawn within this strip.
-        static let playWidthFraction: CGFloat = 0.96
+        /// Sides show marginal gutters of open water so the shore edges read as
+        /// a platform and the field plays tight; icicles only spawn within this
+        /// strip. (v1 was 0.62; widened to 0.96; 0.82 restores a tighter field.)
+        static let playWidthFraction: CGFloat = 0.82
     }
 }
 

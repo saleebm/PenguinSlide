@@ -16,6 +16,7 @@ enum Sprite: String, CaseIterable {
     case penguinHurt    = "PenguinHurt"
     case penguinVictory = "PenguinVictory"
     case icicle         = "Icicle"
+    case icicleShatter  = "IcicleShatter"
     case iceTile        = "IceTile"
     case skyBackdrop    = "SkyBackdrop"
 }
@@ -53,6 +54,18 @@ enum SpriteCatalog {
         let texture = SKTexture(image: image)
         texture.filteringMode = .nearest
         return texture
+    }
+
+    /// Slice a horizontal N-frame spritesheet into per-frame textures
+    /// (non-owning sub-textures sharing the atlas; nearest-neighbor).
+    static func slicedFrames(_ sprite: Sprite, count: Int) -> [SKTexture] {
+        let sheet = texture(for: sprite)
+        let w = CGFloat(1) / CGFloat(count)
+        return (0..<count).map { i in
+            let t = SKTexture(rect: CGRect(x: CGFloat(i) * w, y: 0, width: w, height: 1), in: sheet)
+            t.filteringMode = .nearest
+            return t
+        }
     }
 
     static func preload() {

@@ -46,15 +46,9 @@ enum PenguinAnimations {
 
     // SKTexture rect coordinates are normalized to the source atlas,
     // origin bottom-left. Each frame occupies (1/N) of the width and the
-    // full height — these are horizontal strips, not grids.
+    // full height — these are horizontal strips, not grids. Delegates to
+    // the shared `SpriteCatalog.slicedFrames` slicer.
     private static func slice(_ sprite: Sprite, count: Int) -> [SKTexture] {
-        let sheet = SpriteCatalog.texture(for: sprite)
-        let w = CGFloat(1) / CGFloat(count)
-        return (0..<count).map { i in
-            let t = SKTexture(rect: CGRect(x: CGFloat(i) * w, y: 0, width: w, height: 1),
-                              in: sheet)
-            t.filteringMode = .nearest
-            return t
-        }
+        SpriteCatalog.slicedFrames(sprite, count: count)
     }
 }
