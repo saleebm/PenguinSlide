@@ -67,6 +67,26 @@ enum Tuning {
         static let randomChance: Double = 0.20
     }
 
+    /// Skill-based scoring (penguinslide-y7f). A "close-call" is a *survived*
+    /// icicle landing — reaching the landing code already means the penguin
+    /// dodged it — whose `Feel.shakeRadius`-derived `severity` clears
+    /// `closeCallSeverity`. Severity is the single source of truth for "how
+    /// close"; there is intentionally no separate close-call radius.
+    enum Score {
+        /// Passive survival points per second. Unchanged value; relocated
+        /// from the literal `10` in GameScene's score line.
+        static let survivalRate: CGFloat = 10
+        /// A survived landing with `severity >= this` counts as a scored
+        /// close-call. 0.5 ≈ within 70pt (half of `Feel.shakeRadius`).
+        static let closeCallSeverity: CGFloat = 0.5
+        /// Base points for a close-call, before severity and combo scaling.
+        static let closeCallBase: Int = 50
+        /// Max seconds between close-calls to keep a combo streak alive.
+        static let comboWindow: TimeInterval = 2.5
+        /// Combo multiplier ceiling so a long streak can't run away.
+        static let comboMaxMultiplier: CGFloat = 5.0
+    }
+
     /// Visual feedback on impact: shatter shards + camera shake.
     enum Feel {
         /// Shard count interpolates from min (distant landings) to max
