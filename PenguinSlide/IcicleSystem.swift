@@ -61,6 +61,12 @@ final class IcicleSystem {
     private let hapticHit = UIImpactFeedbackGenerator(style: .medium)
     private let hapticLight = UIImpactFeedbackGenerator(style: .light)
 
+    /// Fired when a *survived* landing clears the close-call severity
+    /// threshold. (severity 0…1, landingPoint in scene coords.) GameScene
+    /// turns this into a scored dodge; IcicleSystem stays pure detection and
+    /// knows nothing about score. Mirrors `Penguin.onHealthChanged`.
+    var onCloseCall: ((CGFloat, CGPoint) -> Void)?
+
     // Crack uses SKAudioNode so we can attenuate it (the raw clip is loud
     // enough to grate when icicles spawn 2-3×/s). stop+play on each spawn
     // restarts the clip, which also naturally rate-limits the SFX so it
@@ -510,6 +516,11 @@ final class IcicleSystem {
                 if severity > 0 {
                     hapticLight.impactOccurred()
                     screenShake(near: landingPoint.x)
+                }
+                // Scored close-call: a stricter subset of the shake band, so
+                // it never fires for distant landings.
+                if severity >= Tuning.Score.closeCallSeverity {
+                    onCloseCall?(severity, landingPoint)
                 }
                 icicle.removeFromParent()
                 entry.shadow?.removeFromParent()
