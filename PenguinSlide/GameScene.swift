@@ -50,6 +50,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var score: Int = 0 {
         didSet { hud?.setScore(score) }
     }
+    // Skill scoring (penguinslide-y7f). `bonusPoints` accumulates close-call
+    // rewards on top of survival time; `combo` is the live streak length;
+    // `lastCloseCallTime` is the `elapsed` stamp of the last dodge.
+    private var bonusPoints: Int = 0
+    private var combo: Int = 0
+    private var lastCloseCallTime: TimeInterval = 0
     private var isGameOver = false
     private var isStarted = false
 
@@ -108,6 +114,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Wire heart HUD to penguin HP so the UI stays in sync without
         // GameScene mediating each change. Initial render covers round start.
         penguin.onHealthChanged = { [weak self] hp in self?.hud.setHealth(hp) }
+        // Close-call dodges flow in from IcicleSystem; GameScene owns the
+        // scoring state and HUD push (penguinslide-y7f).
+        icicles.onCloseCall = { [weak self] severity, point in
+            self?.registerCloseCall(severity: severity, at: point)
+        }
         hud.setHealth(penguin.hp)
 
         startMotionUpdates()
@@ -351,12 +362,32 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         elapsed += dt
 
-        penguin.update(dt: dt, tilt: currentTilt())
-        icicles.update(dt: dt, elapsed: elapsed)
+        // Expire a lapsed combo BEFORE this frame's landings are evaluated,
+        // so a dodge this frame can never be decayed in the same frame.
+        if combo > 0 && elapsed - lastCloseCallTime > Tuning.Score.comboWindow {
+            combo = 0
+            hud.hideCombo()
+        }
 
-        // Score grows steadily so survival is rewarded even without dodges.
-        // Bead penguinslide-y7f will add a close-call bonus on top of this.
-        score = Int(elapsed * 10)
+        penguin.update(dt: dt, tilt: currentTilt())
+        icicles.update(dt: dt, elapsed: elapsed)  // may fire onCloseCall
+
+        // Survival drip (unchanged rate) plus accumulated close-call bonus.
+        score = Int(elapsed * Tuning.Score.survivalRate) + bonusPoints
+    }
+
+    /// Turn a survived close-call into points. Combo decay already ran this
+    /// frame (top of `update`), so a lapsed streak is already 0 here and the
+    /// increment is unconditional. Bonus scales with severity (closer = more)
+    /// and the capped combo multiplier.
+    private func registerCloseCall(severity: CGFloat, at point: CGPoint) {
+        combo += 1
+        lastCloseCallTime = elapsed
+        let multiplier = min(CGFloat(combo), Tuning.Score.comboMaxMultiplier)
+        let bonus = Int((CGFloat(Tuning.Score.closeCallBase) * severity * multiplier).rounded())
+        bonusPoints += bonus
+        hud.floatBonus(bonus, at: point)
+        if combo >= 2 { hud.showCombo(combo) }
     }
 
     // MARK: - Contact
@@ -373,6 +404,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // volume by `accepted`.
         let accepted = penguin.tryTakeHit(from: icicleNode.position.x)
         icicles.onIcicleHitPenguin(icicle: icicleNode, at: contact.contactPoint, accepted: accepted)
+        // Getting clipped breaks the streak; i-frame saves (accepted == false)
+        // do not.
+        if accepted {
+            combo = 0
+            hud.hideCombo()
+        }
 
         if !penguin.isAlive() { triggerGameOver() }
     }
@@ -424,6 +461,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         elapsed = 0
         score = 0
+        bonusPoints = 0
+        combo = 0
+        lastCloseCallTime = 0
+        hud.hideCombo()
         isGameOver = false
         // Reset the frame-time anchor. The `dt == 0` sentinel branch handles
         // first-frame correctly; without this, a future refactor that moves
