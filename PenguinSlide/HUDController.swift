@@ -19,6 +19,7 @@ final class HUDController {
 
     private let scoreLabel: SKLabelNode
     private let bestLabel: SKLabelNode
+    private let comboLabel: SKLabelNode
 
     private let heartTexture: SKTexture
     private var hearts: [SKSpriteNode] = []
@@ -45,6 +46,17 @@ final class HUDController {
         scene.addChild(s)
         self.scoreLabel = s
 
+        let c = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Bold"))
+        c.fontSize = 28
+        c.fontColor = UIColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1)  // warm gold
+        c.position = CGPoint(x: sceneSize.width / 2, y: sceneSize.height - 165)
+        c.zPosition = 50
+        c.horizontalAlignmentMode = .center
+        c.alpha = 0
+        c.text = ""
+        scene.addChild(c)
+        self.comboLabel = c
+
         let b = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Medium"))
         b.fontSize = 18
         b.fontColor = UIColor(white: 0.2, alpha: 0.5)
@@ -66,6 +78,43 @@ final class HUDController {
 
     func setScore(_ value: Int) { scoreLabel.text = "\(value)" }
     func setBest(_ value: Int)  { bestLabel.text = "Best: \(value)" }
+
+    /// Show / refresh the combo multiplier. Called when combo >= 2.
+    func showCombo(_ combo: Int) {
+        comboLabel.text = "×\(combo)"
+        comboLabel.removeAction(forKey: "comboFx")
+        comboLabel.run(.sequence([
+            .group([.fadeIn(withDuration: 0.1), .scale(to: 1.3, duration: 0.1)]),
+            .scale(to: 1.0, duration: 0.12)
+        ]), withKey: "comboFx")
+    }
+
+    /// Fade the combo label out (streak ended or window lapsed).
+    func hideCombo() {
+        comboLabel.removeAction(forKey: "comboFx")
+        comboLabel.run(.fadeOut(withDuration: 0.2))
+    }
+
+    /// Float a "+N" up from a landing point, then remove it. Added to the
+    /// scene in scene coordinates — same pattern the shard burst uses.
+    func floatBonus(_ amount: Int, at point: CGPoint) {
+        guard let scene else { return }
+        let label = SKLabelNode(fontNamed: Self.safeFont(named: "AvenirNext-Bold"))
+        label.text = "+\(amount)"
+        label.fontSize = 22
+        label.fontColor = UIColor(red: 1.0, green: 0.9, blue: 0.3, alpha: 1)
+        label.position = point
+        label.zPosition = 60
+        label.horizontalAlignmentMode = .center
+        scene.addChild(label)
+        label.run(.sequence([
+            .group([
+                .moveBy(x: 0, y: 60, duration: 0.7),
+                .sequence([.wait(forDuration: 0.4), .fadeOut(withDuration: 0.3)])
+            ]),
+            .removeFromParent()
+        ]))
+    }
 
     /// Sync heart row to `hp`. Hearts that just dimmed (alpha drops) get a
     /// quick scale-pulse first so the change reads as "I just took a hit"
