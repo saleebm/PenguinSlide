@@ -52,4 +52,30 @@ final class PenguinSlideUITests: XCTestCase {
         // but the game-over page should be gone shortly after.
         XCTAssertTrue(playAgain.waitForNonExistence(timeout: 2))
     }
+
+    func testScoreIncrementsDuringRound() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        let tapToStart = app.otherElements["Tap to start"]
+        XCTAssertTrue(tapToStart.waitForExistence(timeout: 5))
+        tapToStart.tap()
+
+        // Score climbs from elapsed time alone (score = Int(elapsed *
+        // survivalRate) + bonusPoints), so it grows on the simulator with no
+        // gyro/tilt input. Wait a few seconds, then read the HUD score label.
+        sleep(3)
+
+        // The score SKLabelNode surfaces its text ("0", "26", "184", ...) via
+        // SpriteKit accessibility — no hook needed (see CLAUDE.md). It's a bare
+        // integer, unlike the "Best: N" label, so collect every otherElements
+        // label that parses cleanly as an Int and take the largest: that's the
+        // climbing score.
+        let score = app.otherElements.allElementsBoundByIndex
+            .compactMap { Int($0.label) }
+            .max()
+
+        XCTAssertNotNil(score, "Expected a numeric score SKLabelNode to be readable")
+        XCTAssertGreaterThan(score ?? 0, 10, "Score should climb past 10 after ~3s of play")
+    }
 }
