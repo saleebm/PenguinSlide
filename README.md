@@ -93,6 +93,16 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `gracePeriod` | Quiet seconds at the start of every round. |
 | `playWidthFraction` | Width of the ice strip the penguin is confined to (0–1). Lower = tighter dodge corridor. |
 
+### `Tuning.Score`: skill-based scoring
+
+| Knob | Effect |
+|---|---|
+| `Score.survivalRate` | Passive points per second of survival. |
+| `Score.closeCallSeverity` | How close a survived landing must be (0–1 severity) to score as a dodge; 0.5 ≈ 70pt. |
+| `Score.closeCallBase` | Base points per close-call, before severity and combo scaling. |
+| `Score.comboWindow` | Seconds allowed between dodges to keep the combo streak. |
+| `Score.comboMaxMultiplier` | Combo multiplier ceiling. |
+
 ## Notes on the code
 
 - Uses `CMMotionManager.startDeviceMotionUpdates()` (single instance, no callback queue) and reads `deviceMotion.gravity.x` synchronously from the SpriteKit `update(_:)` loop. This is the recommended pattern: fused sensor data, no main-queue callback storm, frame-locked.
