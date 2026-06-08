@@ -56,6 +56,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var bonusPoints: Int = 0
     private var combo: Int = 0
     private var lastCloseCallTime: TimeInterval = 0
+    #if DEBUG
+    // Reflects the most recent close-call so tests can assert the y7f scoring
+    // hook fired without depending on physics timing (penguinslide-ga8).
+    private var debugLastCloseCall: SKLabelNode?
+    #endif
     private var isGameOver = false
     private var isStarted = false
 
@@ -126,6 +131,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         #if DEBUG
         installDebugForceGameOver()
+        installDebugLastCloseCall()
         #endif
     }
 
@@ -388,6 +394,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         bonusPoints += bonus
         hud.floatBonus(bonus, at: point)
         if combo >= 2 { hud.showCombo(combo) }
+        #if DEBUG
+        // Surface the fire to the accessibility tree for test-near-miss.sh.
+        debugLastCloseCall?.text = "closeCall:fired sev=\(String(format: "%.2f", severity)) bonus=\(bonusPoints)"
+        #endif
     }
 
     // MARK: - Contact
@@ -465,6 +475,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         combo = 0
         lastCloseCallTime = 0
         hud.hideCombo()
+        #if DEBUG
+        debugLastCloseCall?.text = "closeCall:none"
+        #endif
         isGameOver = false
         // Reset the frame-time anchor. The `dt == 0` sentinel branch handles
         // first-frame correctly; without this, a future refactor that moves
@@ -501,6 +514,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.position = CGPoint(x: 4, y: size.height - 4)
         node.zPosition = 10_000
         addChild(node)
+    }
+
+    // Same SKLabelNode-only accessibility constraint as above: its text is the
+    // accessibility label test-near-miss.sh reads. Starts "closeCall:none";
+    // registerCloseCall(severity:at:) rewrites it to "closeCall:fired ...".
+    private func installDebugLastCloseCall() {
+        let node = SKLabelNode(text: "closeCall:none")
+        node.fontSize = 10
+        node.fontColor = UIColor(red: 0, green: 0.6, blue: 1, alpha: 0.55)
+        node.horizontalAlignmentMode = .left
+        node.verticalAlignmentMode = .top
+        node.position = CGPoint(x: 4, y: size.height - 18)
+        node.zPosition = 10_000
+        addChild(node)
+        debugLastCloseCall = node
     }
     #endif
 }
