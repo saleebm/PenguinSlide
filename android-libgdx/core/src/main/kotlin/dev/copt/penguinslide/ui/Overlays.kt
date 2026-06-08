@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
@@ -15,39 +16,41 @@ import dev.copt.penguinslide.render.FxTextures
 
 /**
  * Lightweight, immediate-mode overlays — game-over and settings — drawn with the batch and
- * FreeType fonts (no Scene2D). Player name uses the native `Gdx.input.getTextInput` dialog.
- * Mirrors the SwiftUI `GameOverView` / `SettingsView` surfaces.
+ * the rounded Baloo 2 font (no Scene2D). Player name uses the native `Gdx.input.getTextInput`
+ * dialog. Mirrors the SwiftUI `GameOverView` / `SettingsView` surfaces.
  *
- * Layout rectangles are exposed so [GameScreen] can hit-test taps against them.
+ * Visual language: frosted rounded panels with a soft drop shadow, soft-shadow text (no hard
+ * outline), and a calm icy palette so the UI sits with the painted backdrop rather than on
+ * top of it. Layout rectangles are exposed for [GameScreen] hit-testing.
  */
 class Overlays(private val worldW: Float, private val worldH: Float, private val fx: FxTextures) : Disposable {
 
     private val generator = FreeTypeFontGenerator(Gdx.files.internal("fonts/game.ttf"))
     private val titleFont = font(40)
-    private val bigFont = font(56)
+    private val bigFont = font(60)
     private val buttonFont = font(22)
-    private val bodyFont = font(20)
-    private val smallFont = font(15)
+    private val bodyFont = font(21)
+    private val smallFont = font(16)
     private val layout = GlyphLayout()
+
+    private val panelPatch = NinePatch(fx.roundedLarge, 24, 24, 24, 24)
+    private val buttonPatch = NinePatch(fx.roundedSmall, 15, 15, 15, 15)
 
     init { generator.dispose() }
 
     // ---- shared button bounds ----
 
-    /** "Settings" button, top-right (shown on TITLE/PLAYING). */
-    val settingsButton = Rectangle(worldW - 116f, worldH - 44f, 100f, 32f)
+    val settingsButton = Rectangle(worldW - 120f, worldH - 46f, 104f, 34f)
 
-    // Game-over panel + buttons.
     private val goPanel = Rectangle(worldW / 2f - 250f, worldH / 2f - 150f, 500f, 300f)
-    val playAgainButton = Rectangle(goPanel.x + goPanel.width / 2f + 12f, goPanel.y + 22f, 180f, 46f)
-    val saveButton = Rectangle(goPanel.x + goPanel.width / 2f - 192f, goPanel.y + 22f, 180f, 46f)
+    val playAgainButton = Rectangle(goPanel.x + goPanel.width / 2f + 14f, goPanel.y + 26f, 176f, 50f)
+    val saveButton = Rectangle(goPanel.x + goPanel.width / 2f - 190f, goPanel.y + 26f, 176f, 50f)
 
-    // Settings panel + controls.
-    private val sePanel = Rectangle(worldW / 2f - 230f, worldH / 2f - 150f, 460f, 300f)
-    val sliderTrack = Rectangle(sePanel.x + 40f, sePanel.y + sePanel.height - 110f, sePanel.width - 80f, 10f)
-    val changeNameButton = Rectangle(sePanel.x + 40f, sePanel.y + 100f, 180f, 42f)
-    val resetButton = Rectangle(sePanel.x + sePanel.width - 220f, sePanel.y + 100f, 180f, 42f)
-    val closeButton = Rectangle(sePanel.x + sePanel.width / 2f - 90f, sePanel.y + 30f, 180f, 46f)
+    private val sePanel = Rectangle(worldW / 2f - 235f, worldH / 2f - 155f, 470f, 310f)
+    val sliderTrack = Rectangle(sePanel.x + 44f, sePanel.y + sePanel.height - 118f, sePanel.width - 88f, 12f)
+    val changeNameButton = Rectangle(sePanel.x + 44f, sePanel.y + 96f, 184f, 44f)
+    val resetButton = Rectangle(sePanel.x + sePanel.width - 228f, sePanel.y + 96f, 184f, 44f)
+    val closeButton = Rectangle(sePanel.x + sePanel.width / 2f - 92f, sePanel.y + 30f, 184f, 48f)
 
     // ---- render ----
 
@@ -56,26 +59,24 @@ class Overlays(private val worldW: Float, private val worldH: Float, private val
         panel(batch, goPanel)
 
         val cx = goPanel.x + goPanel.width / 2f
-        titleFont.color = if (isNewBest) GOLD else Color.WHITE
-        drawCentered(batch, titleFont, if (isNewBest) "NEW BEST!" else "GAME OVER", cx, goPanel.y + goPanel.height - 18f)
-        bigFont.color = Color.WHITE
-        drawCentered(batch, bigFont, score.toString(), cx, goPanel.y + goPanel.height - 70f)
+        titleFont.color = if (isNewBest) AMBER else CREAM
+        drawCentered(batch, titleFont, if (isNewBest) "New Best!" else "Game Over", cx, goPanel.y + goPanel.height - 22f)
+        bigFont.color = CREAM
+        drawCentered(batch, bigFont, score.toString(), cx, goPanel.y + goPanel.height - 74f)
 
-        // Leaderboard (top 5).
-        smallFont.color = Color(0.85f, 0.9f, 0.95f, 1f)
-        var ly = goPanel.y + goPanel.height - 140f
+        smallFont.color = MUTED
+        var ly = goPanel.y + goPanel.height - 150f
         if (leaderboard.isEmpty()) {
-            drawCentered(batch, smallFont, "No high scores yet", cx, ly)
+            drawCentered(batch, smallFont, "No runs saved yet", cx, ly)
         } else {
             leaderboard.take(5).forEachIndexed { i, e ->
-                val name = e.name.ifBlank { "Anonymous" }
-                drawCentered(batch, smallFont, "${i + 1}.  $name  —  ${e.score}", cx, ly)
+                drawCentered(batch, smallFont, "${i + 1}.  ${e.name.ifBlank { "Anonymous" }}  ·  ${e.score}", cx, ly)
                 ly -= 22f
             }
         }
 
-        button(batch, saveButton, "Save Score")
-        button(batch, playAgainButton, "Play Again")
+        button(batch, saveButton, "Save Score", BLUE)
+        button(batch, playAgainButton, "Play Again", GREEN)
     }
 
     fun renderSettings(batch: SpriteBatch, tiltIntensity: Float, playerName: String, version: String) {
@@ -83,68 +84,70 @@ class Overlays(private val worldW: Float, private val worldH: Float, private val
         panel(batch, sePanel)
         val cx = sePanel.x + sePanel.width / 2f
 
-        titleFont.color = Color.WHITE
-        drawCentered(batch, titleFont, "Settings", cx, sePanel.y + sePanel.height - 18f)
+        titleFont.color = CREAM
+        drawCentered(batch, titleFont, "Settings", cx, sePanel.y + sePanel.height - 22f)
 
-        bodyFont.color = Color.WHITE
-        drawLeft(batch, bodyFont, "Tilt Response", sliderTrack.x, sliderTrack.y + 44f)
-        // Track + filled portion + knob.
-        batch.setColor(0.3f, 0.35f, 0.42f, 1f)
-        batch.draw(fx.white, sliderTrack.x, sliderTrack.y, sliderTrack.width, sliderTrack.height)
-        batch.setColor(GOLD)
-        batch.draw(fx.white, sliderTrack.x, sliderTrack.y, sliderTrack.width * tiltIntensity, sliderTrack.height)
+        bodyFont.color = CREAM
+        drawLeft(batch, bodyFont, "Tilt Response", sliderTrack.x, sliderTrack.y + 46f)
+
+        // Track (rounded), filled portion (amber), knob (rounded).
+        ninePatch(batch, buttonPatch, sliderTrack.x, sliderTrack.y, sliderTrack.width, sliderTrack.height, TRACK)
+        ninePatch(batch, buttonPatch, sliderTrack.x, sliderTrack.y, sliderTrack.width * tiltIntensity, sliderTrack.height, AMBER)
         val knobX = sliderTrack.x + sliderTrack.width * tiltIntensity
-        batch.setColor(Color.WHITE)
-        batch.draw(fx.white, knobX - 7f, sliderTrack.y - 9f, 14f, 28f)
-        smallFont.color = Color(0.8f, 0.85f, 0.9f, 1f)
-        drawLeft(batch, smallFont, "Calm", sliderTrack.x, sliderTrack.y - 16f)
-        val wild = "Wild"
-        layout.setText(smallFont, wild)
-        smallFont.draw(batch, wild, sliderTrack.x + sliderTrack.width - layout.width, sliderTrack.y - 16f)
+        ninePatch(batch, buttonPatch, knobX - 9f, sliderTrack.y - 9f, 18f, 30f, CREAM)
 
-        bodyFont.color = Color.WHITE
-        drawCentered(batch, bodyFont, "Player: ${playerName.ifBlank { "Anonymous" }}", cx, sePanel.y + 168f)
+        smallFont.color = MUTED
+        drawLeft(batch, smallFont, "Calm", sliderTrack.x, sliderTrack.y - 18f)
+        layout.setText(smallFont, "Wild")
+        smallFont.draw(batch, "Wild", sliderTrack.x + sliderTrack.width - layout.width, sliderTrack.y - 18f)
 
-        button(batch, changeNameButton, "Change Name")
-        button(batch, resetButton, "Reset Tilt")
-        button(batch, closeButton, "Close")
+        bodyFont.color = CREAM
+        drawCentered(batch, bodyFont, "Player:  ${playerName.ifBlank { "Anonymous" }}", cx, sePanel.y + 166f)
 
-        smallFont.color = Color(0.7f, 0.75f, 0.8f, 1f)
-        drawCentered(batch, smallFont, "v$version", cx, sePanel.y + 22f)
+        button(batch, changeNameButton, "Change Name", BLUE)
+        button(batch, resetButton, "Reset Tilt", SLATE)
+        button(batch, closeButton, "Close", GREEN)
+
+        smallFont.color = FAINT
+        drawCentered(batch, smallFont, "v$version", cx, sePanel.y + 24f)
     }
 
     fun renderSettingsButton(batch: SpriteBatch) {
-        button(batch, settingsButton, "Settings")
+        button(batch, settingsButton, "Settings", SLATE)
     }
 
-    /** Slider value [0,1] for a touch x inside (or near) the track. */
     fun sliderValueFor(touchX: Float): Float =
         ((touchX - sliderTrack.x) / sliderTrack.width).coerceIn(0f, 1f)
 
     // ---- drawing helpers ----
 
     private fun scrim(batch: SpriteBatch) {
-        batch.setColor(0f, 0f, 0f, 0.55f)
+        batch.setColor(0.04f, 0.07f, 0.13f, 0.58f)
         batch.draw(fx.white, 0f, 0f, worldW, worldH)
         batch.setColor(Color.WHITE)
     }
 
     private fun panel(batch: SpriteBatch, r: Rectangle) {
-        batch.setColor(0.12f, 0.18f, 0.27f, 0.96f)
-        batch.draw(fx.white, r.x, r.y, r.width, r.height)
-        // Top accent bar.
-        batch.setColor(GOLD)
-        batch.draw(fx.white, r.x, r.y + r.height - 5f, r.width, 5f)
-        batch.setColor(Color.WHITE)
+        // Soft drop shadow.
+        ninePatch(batch, panelPatch, r.x - 6f, r.y - 12f, r.width + 12f, r.height + 12f, SHADOW)
+        // Frosted body.
+        ninePatch(batch, panelPatch, r.x, r.y, r.width, r.height, PANEL)
+        // Subtle top highlight.
+        ninePatch(batch, panelPatch, r.x + 10f, r.y + r.height - 14f, r.width - 20f, 8f, HIGHLIGHT)
     }
 
-    private fun button(batch: SpriteBatch, r: Rectangle, label: String) {
-        batch.setColor(0.22f, 0.45f, 0.72f, 1f)
-        batch.draw(fx.white, r.x, r.y, r.width, r.height)
-        batch.setColor(Color.WHITE)
-        buttonFont.color = Color.WHITE
+    private fun button(batch: SpriteBatch, r: Rectangle, label: String, color: Color) {
+        ninePatch(batch, buttonPatch, r.x + 2f, r.y - 3f, r.width, r.height, SHADOW) // shadow
+        ninePatch(batch, buttonPatch, r.x, r.y, r.width, r.height, color)
+        buttonFont.color = CREAM
         layout.setText(buttonFont, label)
         buttonFont.draw(batch, layout, r.x + (r.width - layout.width) / 2f, r.y + (r.height + layout.height) / 2f)
+    }
+
+    private fun ninePatch(batch: SpriteBatch, np: NinePatch, x: Float, y: Float, w: Float, h: Float, color: Color) {
+        np.color = color
+        np.draw(batch, x, y, w, h)
+        batch.setColor(Color.WHITE)
     }
 
     private fun drawCentered(batch: SpriteBatch, font: BitmapFont, text: String, cx: Float, topY: Float) {
@@ -160,8 +163,9 @@ class Overlays(private val worldW: Float, private val worldH: Float, private val
         val param = FreeTypeFontParameter().apply {
             this.size = size
             color = Color.WHITE
-            borderWidth = 1.5f
-            borderColor = Color(0f, 0f, 0f, 0.5f)
+            shadowOffsetX = 0
+            shadowOffsetY = maxOf(2, size / 18)
+            shadowColor = Color(0.04f, 0.08f, 0.16f, 0.5f)
         }
         return generator.generateFont(param)
     }
@@ -171,6 +175,16 @@ class Overlays(private val worldW: Float, private val worldH: Float, private val
     }
 
     companion object {
-        private val GOLD = Color(1f, 0.84f, 0.3f, 1f)
+        private val CREAM = Color(0.98f, 0.98f, 0.96f, 1f)
+        private val AMBER = Color(1f, 0.80f, 0.40f, 1f)
+        private val MUTED = Color(0.80f, 0.86f, 0.93f, 0.92f)
+        private val FAINT = Color(0.66f, 0.72f, 0.80f, 0.85f)
+        private val PANEL = Color(0.11f, 0.17f, 0.28f, 0.94f)
+        private val HIGHLIGHT = Color(1f, 1f, 1f, 0.06f)
+        private val SHADOW = Color(0f, 0f, 0f, 0.30f)
+        private val TRACK = Color(0.28f, 0.34f, 0.44f, 1f)
+        private val BLUE = Color(0.30f, 0.56f, 0.86f, 1f)
+        private val GREEN = Color(0.30f, 0.68f, 0.52f, 1f)
+        private val SLATE = Color(0.34f, 0.40f, 0.50f, 1f)
     }
 }

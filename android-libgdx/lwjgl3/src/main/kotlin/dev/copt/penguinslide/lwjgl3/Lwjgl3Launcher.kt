@@ -18,6 +18,9 @@ fun main() {
         setWindowedMode(844, 390)
         setForegroundFPS(60)
         useVsync(true)
+        // Explicit position avoids libGDX's primary-monitor centering query, which NPEs
+        // when no monitor is reported (e.g. display asleep / headless-ish).
+        setWindowPosition(120, 120)
         setWindowIcon("sprites/appicon128.png")
     }
     Lwjgl3Application(PenguinSlideGame(), config)

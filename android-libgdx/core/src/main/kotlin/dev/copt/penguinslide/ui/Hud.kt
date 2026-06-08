@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
@@ -22,13 +23,14 @@ import dev.copt.penguinslide.render.FxTextures
 class Hud(private val worldW: Float, private val worldH: Float, private val fx: FxTextures) : Disposable {
 
     private val generator = FreeTypeFontGenerator(Gdx.files.internal("fonts/game.ttf"))
-    private val scoreFont = font(56, Color.WHITE)
-    private val bestFont = font(18, Color(0.8f, 0.85f, 0.9f, 1f))
-    private val comboFont = font(28, GOLD)
-    private val bonusFont = font(24, GOLD)
-    private val titleFont = font(44, Color.WHITE)
-    private val promptFont = font(22, Color(0.95f, 0.97f, 1f, 1f))
+    private val scoreFont = font(58, CREAM)
+    private val bestFont = font(19, Color(0.78f, 0.85f, 0.92f, 0.9f))
+    private val comboFont = font(30, AMBER)
+    private val bonusFont = font(26, AMBER)
+    private val titleFont = font(46, CREAM)
+    private val promptFont = font(22, Color(0.92f, 0.96f, 1f, 1f))
     private val layout = GlyphLayout()
+    private val banner = NinePatch(fx.roundedLarge, 24, 24, 24, 24)
 
     private var score = 0
     private var best = 0
@@ -77,7 +79,7 @@ class Hud(private val worldW: Float, private val worldH: Float, private val fx: 
         // Hearts (top-left): filled = red, empty = dim gray.
         val maxHp = Tuning.penguin.maxHealth
         for (i in 0 until maxHp) {
-            if (i < hp) batch.setColor(0.95f, 0.25f, 0.3f, 1f) else batch.setColor(0.4f, 0.4f, 0.45f, 0.6f)
+            if (i < hp) batch.setColor(0.96f, 0.38f, 0.45f, 1f) else batch.setColor(0.55f, 0.62f, 0.72f, 0.45f)
             val s = 30f
             batch.draw(fx.heart, 24f + i * 38f, worldH - 56f, s, s)
         }
@@ -95,12 +97,16 @@ class Hud(private val worldW: Float, private val worldH: Float, private val fx: 
         for (b in bonuses) {
             val y = b.y0 + 60f * (b.age / 0.7f)
             val a = if (b.age < 0.35f) 1f else (1f - (b.age - 0.35f) / 0.35f).coerceIn(0f, 1f)
-            bonusFont.color = Color(GOLD.r, GOLD.g, GOLD.b, a)
+            bonusFont.color = Color(AMBER.r, AMBER.g, AMBER.b, a)
             drawCentered(batch, bonusFont, b.text, b.x, y)
         }
-        bonusFont.color = GOLD
+        bonusFont.color = AMBER
 
         if (startPrompt) {
+            // Soft banner so the title reads against the bright sky.
+            banner.color = Color(0.06f, 0.10f, 0.20f, 0.34f)
+            banner.draw(batch, worldW * 0.18f, worldH * 0.34f, worldW * 0.64f, worldH * 0.34f)
+            batch.setColor(Color.WHITE)
             drawCentered(batch, titleFont, "ICY PENGUIN SLIDE", worldW / 2f, worldH * 0.62f)
             val pulse = 0.6f + 0.4f * (0.5f + 0.5f * MathUtils.sin(promptTime * 3f))
             promptFont.color = Color(0.95f, 0.97f, 1f, pulse)
@@ -124,8 +130,10 @@ class Hud(private val worldW: Float, private val worldH: Float, private val fx: 
         val param = FreeTypeFontParameter().apply {
             this.size = size
             this.color = color
-            borderWidth = 1.5f
-            borderColor = Color(0f, 0f, 0f, 0.5f)
+            // Soft drop shadow instead of a hard black outline — reads far less "arcade".
+            shadowOffsetX = 0
+            shadowOffsetY = maxOf(2, size / 18)
+            shadowColor = Color(0.05f, 0.10f, 0.20f, 0.45f)
         }
         return generator.generateFont(param)
     }
@@ -136,6 +144,7 @@ class Hud(private val worldW: Float, private val worldH: Float, private val fx: 
     }
 
     companion object {
-        private val GOLD = Color(1f, 0.84f, 0.3f, 1f)
+        private val AMBER = Color(1f, 0.80f, 0.40f, 1f)   // softer than pure gold
+        private val CREAM = Color(0.98f, 0.98f, 0.96f, 1f) // warm white, not clinical
     }
 }

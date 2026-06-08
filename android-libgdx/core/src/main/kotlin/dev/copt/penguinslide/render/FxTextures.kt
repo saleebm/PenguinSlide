@@ -23,6 +23,10 @@ class FxTextures : Disposable {
         Texture(pm).also { pm.dispose() }
     }
 
+    /** White rounded-rect bases for ninepatch panels (large radius) and buttons (small). */
+    val roundedLarge: Texture = roundedSquare(72, 24)
+    val roundedSmall: Texture = roundedSquare(44, 15)
+
     /** White heart (tinted red/gray at draw time) for the HUD hearts. */
     val heart: Texture = run {
         val s = 32
@@ -54,6 +58,28 @@ class FxTextures : Disposable {
         Texture(pm).also { it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear); pm.dispose() }
     }
 
+    /** A white rounded square, supersampled 4x then downscaled for anti-aliased corners. */
+    private fun roundedSquare(size: Int, radius: Int): Texture {
+        val ss = 4
+        val w = size * ss; val h = size * ss; val r = radius * ss
+        val big = Pixmap(w, h, Pixmap.Format.RGBA8888)
+        big.setColor(Color.WHITE)
+        big.fillRectangle(r, 0, w - 2 * r, h)
+        big.fillRectangle(0, r, w, h - 2 * r)
+        big.fillCircle(r, r, r)
+        big.fillCircle(w - 1 - r, r, r)
+        big.fillCircle(r, h - 1 - r, r)
+        big.fillCircle(w - 1 - r, h - 1 - r, r)
+        val small = Pixmap(size, size, Pixmap.Format.RGBA8888)
+        small.filter = Pixmap.Filter.BiLinear
+        small.drawPixmap(big, 0, 0, w, h, 0, 0, size, size)
+        big.dispose()
+        return Texture(small).also {
+            it.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+            small.dispose()
+        }
+    }
+
     private fun circlePixmap(size: Int, r: Float, g: Float, b: Float, a: Float): Texture {
         val pm = Pixmap(size, size, Pixmap.Format.RGBA8888)
         pm.setColor(r, g, b, a)
@@ -66,5 +92,6 @@ class FxTextures : Disposable {
 
     override fun dispose() {
         dot.dispose(); shadow.dispose(); shard.dispose(); white.dispose(); heart.dispose()
+        roundedLarge.dispose(); roundedSmall.dispose()
     }
 }

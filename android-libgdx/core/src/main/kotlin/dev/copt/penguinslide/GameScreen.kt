@@ -131,8 +131,6 @@ class GameScreen(private val game: PenguinSlideGame) : ScreenAdapter() {
     override fun show() {
         audio.startMusic()
         Gdx.input.inputProcessor = input
-        if (autoStart) startGame()
-        if (openSettingsOnStart) settingsOpen = true
     }
 
     override fun resize(width: Int, height: Int) {
@@ -168,6 +166,9 @@ class GameScreen(private val game: PenguinSlideGame) : ScreenAdapter() {
             it.onCloseCall = { severity, x -> registerCloseCall(severity, x) }
             it.onPenguinHit = { accepted -> if (accepted) { combo = 0; h.hideCombo() } }
         }
+        // Dev hooks fire here (after the HUD exists), not in show().
+        if (autoStart) startGame()
+        if (openSettingsOnStart) settingsOpen = true
     }
 
     // ---- state transitions ----
