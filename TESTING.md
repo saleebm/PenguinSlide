@@ -113,6 +113,8 @@ The target and scheme are wired in `project.yml`. Re-run `xcodegen generate` aft
 
 ## Forcing game-over from tests
 
+*Last reviewed: Sun, 08 Jun 2026 — also covers the shipped close-call **scoring** hook (penguinslide-y7f): a survived icicle landing whose `severity >= Tuning.Score.closeCallSeverity` (0.5) fires `IcicleSystem.onCloseCall(severity, landingPoint)`, which `GameScene.registerCloseCall(severity:at:)` turns into a severity-scaled, combo-multiplied bonus plus HUD combo + floating `+N`. Severity reuses the existing `severity = max(0, 1 - dx/Tuning.Feel.shakeRadius)` as the single source of truth — there is no `nearMissRadius`, and shake is not suppressed by any near-miss zone (it fires for any `severity > 0`).*
+
 `GameScene` installs a hidden 44x44 accessibility node labelled `debugForceGameOver` under `#if DEBUG` (penguinslide-ei0). Tapping it routes through the existing `triggerGameOver()` path regardless of game state, so tests don't depend on physics timing.
 
 - agent-device: `agent-device press 'label="debugForceGameOver"'`
