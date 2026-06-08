@@ -67,15 +67,22 @@ final class PenguinSlideUITests: XCTestCase {
         sleep(3)
 
         // The score SKLabelNode surfaces its text ("0", "26", "184", ...) via
-        // SpriteKit accessibility — no hook needed (see CLAUDE.md). It's a bare
-        // integer, unlike the "Best: N" label, so collect every otherElements
-        // label that parses cleanly as an Int and take the largest: that's the
-        // climbing score.
-        let score = app.otherElements.allElementsBoundByIndex
-            .compactMap { Int($0.label) }
-            .max()
+        // SpriteKit accessibility — no hook needed (see CLAUDE.md). It's the
+        // only bare positive integer in the tree ("Best: N" has letters), so we
+        // match it with a digits-only predicate and read firstMatch.
+        //
+        // Do NOT enumerate allElementsBoundByIndex here: the HUD mutates every
+        // frame (the score relabels, combo/+N nodes come and go), so resolving
+        // each cached index lazily throws "No matches found for Element at
+        // index N" mid-read. firstMatch resolves a single element in one shot.
+        let scoreLabel = app.otherElements
+            .matching(NSPredicate(format: "label MATCHES %@", "^[1-9][0-9]*$"))
+            .firstMatch
+        XCTAssertTrue(scoreLabel.waitForExistence(timeout: 5),
+                      "Expected a numeric score SKLabelNode to climb above 0")
+        let score = Int(scoreLabel.label)
 
-        XCTAssertNotNil(score, "Expected a numeric score SKLabelNode to be readable")
+        XCTAssertNotNil(score, "Score label should parse as an Int")
         XCTAssertGreaterThan(score ?? 0, 10, "Score should climb past 10 after ~3s of play")
     }
 }
