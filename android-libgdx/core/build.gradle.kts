@@ -10,15 +10,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
 }
 
+// Pin Java 17 via a toolchain so Gradle resolves/downloads the right JDK on any host
+// (AGP rejects JDK 23). Sets both the compile JDK and Kotlin's jvmTarget to 17.
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
+    jvmToolchain(17)
 }
 
 tasks.test {

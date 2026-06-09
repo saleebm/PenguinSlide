@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -40,8 +38,10 @@ android {
     }
 }
 
+// Pin Java 17 via a toolchain so Gradle resolves/downloads the right JDK on any host
+// (AGP does not support JDK 23). Sets the compile JDK and Kotlin jvmTarget to 17.
 kotlin {
-    compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    jvmToolchain(17)
 }
 
 // libGDX native libraries are shipped as per-ABI jars; extract their .so into libs/<abi>

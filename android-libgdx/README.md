@@ -35,8 +35,10 @@ adb install -r android/build/outputs/apk/debug/android-debug.apk
 
 ## Toolchain
 
-- JDK 17 (the Android Gradle Plugin does not support JDK 23). The build pins it via
-  `org.gradle.java.home` in `gradle.properties`.
+- JDK 17 (the Android Gradle Plugin does not support JDK 23). Every module declares a
+  Java 17 **toolchain**, and the `foojay-resolver` plugin in `settings.gradle.kts` lets
+  Gradle locate an installed JDK 17 — or download one — on any host. No machine-specific
+  JDK path is committed, so the build is portable across macOS/Linux/Windows/CI.
 - Android SDK (`platform-tools`, `platforms;android-34`, `build-tools;34.0.0`); path in
   `local.properties` (`sdk.dir`).
 - Gradle wrapper 8.12, AGP 8.7.3, Kotlin 2.1.0, libGDX 1.13.1.
