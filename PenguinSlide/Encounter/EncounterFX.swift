@@ -13,15 +13,21 @@
 //  ## What plays when (mirrors onIcicleHitPenguin's accepted handling)
 //
 //  HIT (a snowball connected with Papi):
-//  - Snow-splat burst: the SpriteCook one-shot sheet (SnowballBurst,
-//    8 frames @ 8 fps — see spritecook-assets.json) anchored AT the
-//    impact screen point on the avatar, scaled by the avatar's depth
-//    scale, drawn JUST in front of the PapiAvatar node so the ball
-//    reads as going INTO Papi. The encounter system retires the ball
-//    node inside the same sweep frame that fires the hit callback, so
-//    no ball is ever visible passing through the splat. The burst
-//    plays alongside the avatar's own hurt flash/squash (gyu.11) and
-//    i-frame flicker.
+//  - Powder puff + gravity snow chunks (penguinslide-bo8): a soft
+//    cached puff swells/fades AT the impact screen point, and 6–10
+//    small snow-chip sprites launch radially and fall under manual
+//    gravity — the icicle-shatter recipe, by Mina's spec. Chunks are
+//    integrated in `update(dt:)` (ticked from GameScene's encounter
+//    phase bodies), NOT SKAction-driven, so the game-over freeze
+//    (ticks stop) leaves them hanging mid-air in the frozen frame and
+//    the dt == 0 sentinel adds nothing. Drawn just in front of the
+//    PapiAvatar node so the ball reads as going INTO Papi; the system
+//    retires the ball node in the same sweep frame, so no ball is ever
+//    visible passing through the splash. Plays alongside the avatar's
+//    hurt flash/squash (gyu.11) and i-frame flicker.
+//    (The original SpriteCook SnowballBurst sheet is RETIRED: its
+//    frames carried an opaque white background that rendered as a
+//    white box on device — see spritecook-assets.json's retired note.)
 //  - accepted == true  (HP lost):    medium haptic + full hit shake.
 //  - accepted == false (i-frames):   light haptic, smaller/dimmer
 //    burst, NO shake — the icicle path's "softer pop" treatment; the
@@ -52,19 +58,36 @@ import UIKit
 // per the EncounterWorld/PapiAvatar precedent (fold into Tuning.swift
 // whenever convenient).
 extension Tuning.Encounter {
-    /// Snow-splat burst footprint (pt) at avatar depth scale 1.0 — the
-    /// splat should swallow the ~64 pt ball and visibly slap the 180 pt
-    /// avatar without covering the whole sprite. Raise for a beefier
-    /// impact read; lower for a subtler puff.
-    static let burstBaseSize: CGFloat = 120
-    /// Burst size multiplier for i-frame-absorbed hits — the "softer
-    /// pop" treatment mirroring onIcicleHitPenguin's accepted == false
-    /// branch. Raise toward 1 to make absorbed hits read as loud as
-    /// real ones; lower for a fainter blocked-hit cue.
-    static let burstAbsorbedScale: CGFloat = 0.65
-    /// Burst clip playback rate — matches the 8 fps recorded for
-    /// snowball_impact_burst in spritecook-assets.json.
-    static let burstAnimFps: Double = 8
+    /// Powder-puff core footprint (pt) at avatar depth scale 1.0 — the
+    /// soft white pop under the chunk burst. It should swallow the
+    /// ~64 pt ball without covering the whole 180 pt avatar. Raise for
+    /// a beefier impact read; lower for a subtler one.
+    static let impactPuffBaseSize: CGFloat = 96
+    /// Puff one-shot lifetime (s): swells to ~1.25× while fading out.
+    static let impactPuffDuration: TimeInterval = 0.32
+    /// Snow chunks launched by an accepted hit (HP lost); the i-frame
+    /// absorbed branch spawns the smaller count. Per-hit node creation
+    /// only — never per-frame.
+    static let impactChunkCount: Int = 10
+    static let impactChunkCountAbsorbed: Int = 6
+    /// Chunk radial launch speed range (pt/s at depth scale 1.0).
+    static let impactChunkSpeedMin: CGFloat = 150
+    static let impactChunkSpeedMax: CGFloat = 330
+    /// Manual gravity on chunks (pt/s² at depth scale 1.0) — the
+    /// integrate-it-yourself doctrine shared with IcicleSystem's shards.
+    static let impactChunkGravity: CGFloat = 1050
+    /// Chunk lifetime (s); alpha ramps to 0 across it, then the node is
+    /// removed by the integration tick.
+    static let impactChunkLifetime: TimeInterval = 0.6
+    /// Chunk sprite size range (pt at depth scale 1.0).
+    static let impactChunkSizeMin: CGFloat = 7
+    static let impactChunkSizeMax: CGFloat = 15
+    /// Softer-pop multiplier for i-frame-absorbed hits — scales chunk
+    /// count/speed and puff size/alpha, mirroring onIcicleHitPenguin's
+    /// accepted == false branch. Raise toward 1 to make absorbed hits
+    /// read as loud as real ones. (Named distinctly from the AUDIO
+    /// `impactAbsorbedScale`, which ducks the impact sample's volume.)
+    static let impactFXSoftenScale: CGFloat = 0.65
     /// Minimum dodge severity (∈ [0, 1]) that earns the light haptic
     /// tick. Raise so only hair's-breadth shaves buzz; lower for more
     /// generous physical feedback (1.0 silences dodge haptics).
@@ -131,12 +154,31 @@ final class EncounterFX {
     private let hapticHit = UIImpactFeedbackGenerator(style: .medium)
     private let hapticLight = UIImpactFeedbackGenerator(style: .light)
 
-    /// Live transient FX nodes (bursts, speed lines). Array-tracked —
+    /// Live transient FX nodes (puffs, speed lines). Array-tracked —
     /// the activeBursts pattern — so `pauseActions()` can freeze each
     /// node's one-shot mid-flight for a coherent game-over frame and
     /// `reset()` can scrub them all. Entries self-evict when their
     /// action completes. `private(set)` for test assertions.
     private(set) var activeFX: [SKNode] = []
+
+    /// One launched snow chunk — manually integrated (no physics body:
+    /// nothing to collide). Internal fields are readable so tests can
+    /// assert the gravity/lifetime contract without ticking SKActions.
+    struct SnowChunk {
+        weak var node: SKSpriteNode?
+        var vx: CGFloat
+        var vy: CGFloat
+        var spin: CGFloat
+        var age: TimeInterval
+        let lifetime: TimeInterval
+        let gravity: CGFloat
+        let baseAlpha: CGFloat
+    }
+
+    /// Live impact chunks. Not in `activeFX`: chunks are tick-driven,
+    /// not SKAction-driven, so the game-over freeze comes from the
+    /// update guard (ticks stop), not from `isPaused`.
+    private(set) var activeChunks: [SnowChunk] = []
 
     // MARK: - Cached textures
 
@@ -158,6 +200,51 @@ final class EncounterFX {
             UIBezierPath(roundedRect: CGRect(x: w * 0.25, y: h * 0.25,
                                              width: w * 0.5, height: h * 0.5),
                          cornerRadius: h / 4).fill()
+        }
+        let tex = SKTexture(image: img)
+        tex.filteringMode = .linear
+        return tex
+    }()
+
+    /// Small rounded snow chip for impact chunks — cached once (the
+    /// puffTexture doctrine). Irregular blob, white core over an
+    /// icy-blue shade so chips read against both sky and snow.
+    static let snowChunkTexture: SKTexture = {
+        let size = CGSize(width: 14, height: 12)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let img = renderer.image { ctx in
+            let cg = ctx.cgContext
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 3, y: 0.5))
+            path.addLine(to: CGPoint(x: 11.5, y: 1.5))
+            path.addLine(to: CGPoint(x: 13.5, y: 7))
+            path.addLine(to: CGPoint(x: 8, y: 11.5))
+            path.addLine(to: CGPoint(x: 1, y: 8.5))
+            path.close()
+            cg.setFillColor(UIColor(red: 0.78, green: 0.88, blue: 0.97, alpha: 1).cgColor)
+            path.fill()
+            cg.translateBy(x: 2.5, y: 1.5)
+            cg.scaleBy(x: 0.65, y: 0.65)
+            cg.setFillColor(UIColor.white.cgColor)
+            path.fill()
+        }
+        let tex = SKTexture(image: img)
+        tex.filteringMode = .nearest   // matches the pixel-art world
+        return tex
+    }()
+
+    /// Soft radial powder puff — three stacked alpha circles rendered
+    /// once, never a per-hit SKShapeNode.
+    static let puffTexture: SKTexture = {
+        let d: CGFloat = 64
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: d, height: d))
+        let img = renderer.image { ctx in
+            let cg = ctx.cgContext
+            for (radius, alpha): (CGFloat, CGFloat) in [(32, 0.25), (24, 0.45), (15, 0.85)] {
+                cg.setFillColor(UIColor(white: 1, alpha: alpha).cgColor)
+                cg.fillEllipse(in: CGRect(x: d / 2 - radius, y: d / 2 - radius,
+                                          width: radius * 2, height: radius * 2))
+            }
         }
         let tex = SKTexture(image: img)
         tex.filteringMode = .linear
@@ -194,24 +281,98 @@ final class EncounterFX {
         }
 
         guard let parent else { return }
-        let size = Tuning.Encounter.burstBaseSize * depthScale
-            * (accepted ? 1.0 : Tuning.Encounter.burstAbsorbedScale)
-        let burst = SKSpriteNode(texture: EncounterAnimations.snowballBurstFrames.first)
-        burst.size = CGSize(width: size, height: size)
-        burst.position = point
-        burst.zPosition = Self.burstZPosition
-        burst.name = "snowballBurst"
+        let soften: CGFloat = accepted ? 1.0 : Tuning.Encounter.impactFXSoftenScale
+
+        // Powder-puff core: a tracked one-shot (pause-registered via
+        // activeFX) that swells and fades at the impact point.
+        let puffSize = Tuning.Encounter.impactPuffBaseSize * depthScale * soften
+        let puff = SKSpriteNode(texture: Self.puffTexture)
+        puff.size = CGSize(width: puffSize, height: puffSize)
+        puff.position = point
+        puff.zPosition = Self.burstZPosition
+        puff.name = "snowballPuff"
         if !accepted {
             // Softer pop for the blocked hit — the avatar's i-frame
             // flicker carries the "still invulnerable" message.
-            burst.alpha = 0.8
+            puff.alpha = 0.8
         }
-        parent.addChild(burst)
-        let anim = SKAction.animate(
-            with: EncounterAnimations.snowballBurstFrames,
-            timePerFrame: 1.0 / Tuning.Encounter.burstAnimFps,
-            resize: false, restore: false)
-        runTracked(burst, .sequence([anim, .removeFromParent()]))
+        puff.setScale(0.7)
+        parent.addChild(puff)
+        let dur = Tuning.Encounter.impactPuffDuration
+        runTracked(puff, .sequence([
+            .group([
+                .scale(to: 1.25, duration: dur),
+                .fadeOut(withDuration: dur)
+            ]),
+            .removeFromParent()
+        ]))
+
+        spawnChunks(at: point, depthScale: depthScale, soften: soften)
+    }
+
+    /// Launch the gravity snow chunks for one impact. Radial directions
+    /// with an upward lift so the spray arcs like the icicle shatter,
+    /// then `update(dt:)` owns them.
+    private func spawnChunks(at point: CGPoint, depthScale: CGFloat, soften: CGFloat) {
+        guard let parent else { return }
+        let count = soften >= 1
+            ? Tuning.Encounter.impactChunkCount
+            : Tuning.Encounter.impactChunkCountAbsorbed
+        for _ in 0..<count {
+            let chunk = SKSpriteNode(texture: Self.snowChunkTexture)
+            let side = CGFloat.random(
+                in: Tuning.Encounter.impactChunkSizeMin...Tuning.Encounter.impactChunkSizeMax
+            ) * depthScale
+            chunk.size = CGSize(width: side, height: side * 0.85)
+            chunk.position = point
+            chunk.zPosition = Self.burstZPosition + 1
+            chunk.zRotation = CGFloat.random(in: 0...(2 * .pi))
+            chunk.name = "snowChunk"
+            chunk.alpha = soften >= 1 ? 1.0 : 0.8
+            parent.addChild(chunk)
+            let angle = CGFloat.random(in: 0...(2 * .pi))
+            let speed = CGFloat.random(
+                in: Tuning.Encounter.impactChunkSpeedMin...Tuning.Encounter.impactChunkSpeedMax
+            ) * depthScale * soften
+            activeChunks.append(SnowChunk(
+                node: chunk,
+                vx: cos(angle) * speed,
+                // Vertical component is folded upward (+ a flat lift) so
+                // every chunk pops before gravity pulls it down — the
+                // splash read, not a uniform sphere.
+                vy: abs(sin(angle)) * speed * 0.9 + 70 * depthScale,
+                spin: CGFloat.random(in: -7...7),
+                age: 0,
+                lifetime: Tuning.Encounter.impactChunkLifetime,
+                gravity: Tuning.Encounter.impactChunkGravity * depthScale,
+                baseAlpha: soften >= 1 ? 1.0 : 0.8
+            ))
+        }
+    }
+
+    /// Manual chunk integration — called from GameScene's encounter
+    /// phase bodies (the same place the encounter system ticks), so the
+    /// update-loop guard freezes chunks on game over and the dt == 0
+    /// sentinel is a free no-op (the repo's manual-physics doctrine —
+    /// see GameScene.update's ordering contract).
+    func update(dt: TimeInterval) {
+        guard dt > 0, !activeChunks.isEmpty else { return }
+        let dtF = CGFloat(dt)
+        activeChunks = activeChunks.compactMap { entry in
+            var c = entry
+            guard let node = c.node, node.parent != nil else { return nil }
+            c.age += dt
+            if c.age >= c.lifetime {
+                node.removeFromParent()
+                return nil
+            }
+            c.vy -= c.gravity * dtF
+            node.position = CGPoint(x: node.position.x + c.vx * dtF,
+                                    y: node.position.y + c.vy * dtF)
+            node.zRotation += c.spin * dtF
+            node.alpha = c.baseAlpha * (1 - CGFloat(c.age / c.lifetime))
+            return c
+        }
     }
 
     // MARK: - Dodge
@@ -273,6 +434,8 @@ final class EncounterFX {
     func reset() {
         for node in activeFX { node.removeFromParent() }
         activeFX.removeAll(keepingCapacity: true)
+        for entry in activeChunks { entry.node?.removeFromParent() }
+        activeChunks.removeAll(keepingCapacity: true)
     }
 
     // MARK: - Private

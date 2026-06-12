@@ -20,7 +20,6 @@ enum EncounterAnimState {
     case monsterRoar
     case monsterMelt
     case papiSlide
-    case snowballBurst
 }
 
 enum EncounterAnimations {
@@ -45,23 +44,21 @@ enum EncounterAnimations {
     //                           trims its zRotation lean target by
     //                           Tuning.Encounter.papiLeanScale so baked +
     //                           rotated lean don't over-rotate)
-    //   snowball_impact_burst   8 frames @ 74x74, 8fps, one-shot. Snow-splat
-    //                           impact FX (penguinslide-gyu.16): splat
-    //                           shatters radially, powder puff dissipates.
-    //                           Played by EncounterFX at the hit point.
+    //   (snowball_impact_burst was RETIRED by penguinslide-bo8: the sheet
+    //   carried an opaque white background that rendered as a white box
+    //   on device. Snowball impact FX is now procedural — see
+    //   EncounterFX's puff + gravity snow chunks.)
     private static let monsterIdleFrameCount   = 12
     private static let monsterThrowFrameCount  = 10
     private static let monsterRoarFrameCount   = 8
     private static let monsterMeltFrameCount   = 16
     private static let papiSlideFrameCount     = 8
-    private static let snowballBurstFrameCount = 8
 
     static let monsterIdleFrames:   [SKTexture] = slice(.snowMonsterIdle,  count: monsterIdleFrameCount)
     static let monsterThrowFrames:  [SKTexture] = slice(.snowMonsterThrow, count: monsterThrowFrameCount)
     static let monsterRoarFrames:   [SKTexture] = slice(.snowMonsterRoar,  count: monsterRoarFrameCount)
     static let monsterMeltFrames:   [SKTexture] = slice(.snowMonsterMelt,  count: monsterMeltFrameCount)
     static let papiSlideFrames:     [SKTexture] = slice(.papiRearSlide,    count: papiSlideFrameCount)
-    static let snowballBurstFrames: [SKTexture] = slice(.snowballBurst,    count: snowballBurstFrameCount)
 
     static func frames(for state: EncounterAnimState) -> [SKTexture] {
         switch state {
@@ -70,7 +67,6 @@ enum EncounterAnimations {
         case .monsterRoar:   return monsterRoarFrames
         case .monsterMelt:   return monsterMeltFrames
         case .papiSlide:     return papiSlideFrames
-        case .snowballBurst: return snowballBurstFrames
         }
     }
 
@@ -78,7 +74,7 @@ enum EncounterAnimations {
         switch state {
         case .monsterIdle, .papiSlide:
             return true
-        case .monsterThrow, .monsterRoar, .monsterMelt, .snowballBurst:
+        case .monsterThrow, .monsterRoar, .monsterMelt:
             return false
         }
     }

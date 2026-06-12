@@ -498,4 +498,46 @@ final class SnowballCollisionTests: XCTestCase {
         XCTAssertEqual(system.outstandingBalls, 0,
                        "a torn-down volley must not leave ghost balls in the completion accounting")
     }
+
+    // MARK: - Hitbox geometry (penguinslide-bo8)
+
+    /// The hit radius is DERIVED from the visual geometry — Papi's body
+    /// half-width plus the snowball's core radius — so a ball that
+    /// visibly overlaps the penguin always registers as a hit. The old
+    /// hand-tuned 38 pt covered only the middle ~40% of the 180 pt
+    /// sprite; shoulder smacks scored as "+n" close-call dodges, which
+    /// read as "catching" on device (Mina's report).
+    func testLateralHitRadiusDerivesFromVisualGeometry() {
+        let expected = Tuning.Encounter.papiBaseSize
+            * Tuning.Encounter.papiBodyWidthFraction / 2
+            + Tuning.Encounter.snowballBaseSize
+            * Tuning.Encounter.snowballCoreFraction / 2
+        XCTAssertEqual(Tuning.Encounter.lateralHitRadius, expected, accuracy: 1e-9)
+        // Sanity bound: the hit disc must cover at least half of Papi's
+        // visual half-width, or body hits read as misses again.
+        XCTAssertGreaterThanOrEqual(Tuning.Encounter.lateralHitRadius,
+                                    Tuning.Encounter.papiBaseSize / 4)
+        // And never exceed the visual footprint outright (free hits).
+        XCTAssertLessThanOrEqual(Tuning.Encounter.lateralHitRadius,
+                                 Tuning.Encounter.papiBaseSize / 2 + Tuning.Encounter.snowballBaseSize / 2)
+    }
+
+    /// Behavioral pin: a ball overlapping Papi's shoulder (inside the
+    /// derived radius, well outside the old 38 pt) is a HIT; a ball just
+    /// outside the derived radius at the plane crossing is a dodge.
+    func testShoulderOverlapHitsAndNearMissDodges() {
+        let r = Tuning.Encounter.lateralHitRadius
+        let shoulder = SnowMonsterEncounterSystem.resolve(
+            previousZ: Tuning.Encounter.depthWindow + 1, z: 1,
+            ballWorldX: 100 + (r - 1), papiWorldX: 100)
+        XCTAssertEqual(shoulder, .hit,
+                       "a ball visually overlapping the body must connect")
+
+        let nearMiss = SnowMonsterEncounterSystem.resolve(
+            previousZ: 1, z: 0,
+            ballWorldX: 100 + (r + 1), papiWorldX: 100)
+        guard case .dodged = nearMiss else {
+            return XCTFail("just outside the derived radius must resolve as a dodge, got \(nearMiss)")
+        }
+    }
 }

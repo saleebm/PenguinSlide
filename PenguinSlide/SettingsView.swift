@@ -32,10 +32,12 @@ struct SettingsView: View {
             SettingsHeader(accent: accent, name: $name, onDismiss: onDismiss)
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
+                    SnowMonsterButton(accent: accent,
+                                      snowMonsterArmed: $snowMonsterArmed,
+                                      onDismiss: onDismiss)
                     PlayerSection(accent: accent, name: $name)
                     GameplaySection(accent: accent)
                     HowToPlaySection(accent: accent)
-                    ExperimentalSection(accent: accent, snowMonsterArmed: $snowMonsterArmed)
                     AboutSection(accent: accent)
                 }
                 .padding(.horizontal, 22)
@@ -241,59 +243,59 @@ private struct HowToPlaySection: View {
     }
 }
 
-// Temporary manual entry point for the Snow Monster encounter ("for now" —
-// expected to fold into the debug menu or the proper game flow once the
-// encounter beads land; see penguinslide-gyu.30). Tapping arms a pending
-// trigger; ContentView queues the encounter when the overlay dismisses.
-private struct ExperimentalSection: View {
+// One-tap entry point for the Snow Monster encounter, pinned at the top of
+// the menu so it reads as "play this for fun" rather than a buried setting.
+// Tapping arms the pending trigger and dismisses immediately; ContentView
+// queues the encounter when the overlay finishes dismissing.
+private struct SnowMonsterButton: View {
     let accent: Color
     @Binding var snowMonsterArmed: Bool
+    let onDismiss: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(text: "Experimental", accent: accent)
-            Button {
-                snowMonsterArmed.toggle()
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "snowflake.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(accent)
-                        .frame(width: 22, alignment: .center)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Snow Monster Mode")
-                            .font(.callout)
-                            .foregroundStyle(.white)
-                        Text(snowMonsterArmed
-                             ? "Starts when you close settings"
-                             : "Play the encounter instead of the run")
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.55))
-                    }
-                    Spacer()
-                    Image(systemName: snowMonsterArmed ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundStyle(snowMonsterArmed ? accent : .white.opacity(0.35))
+        Button {
+            snowMonsterArmed = true
+            onDismiss()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "snowflake.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Snow Monster Mode")
+                        .font(.system(.callout, design: .rounded).weight(.bold))
+                        .foregroundStyle(.white)
+                    Text("Battle the Snow Monster — just for fun")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.75))
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(
-                            snowMonsterArmed ? accent.opacity(0.55) : Color.white.opacity(0.10),
-                            lineWidth: 1
-                        )
-                )
+                Spacer()
+                Image(systemName: "play.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.white)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Snow Monster Mode")
-            .accessibilityValue(snowMonsterArmed ? "armed" : "off")
-            .accessibilityHint("Triggers the Snow Monster encounter when settings closes")
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [accent.opacity(0.45), accent.opacity(0.20)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(accent.opacity(0.65), lineWidth: 1)
+            )
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Snow Monster Mode")
+        .accessibilityHint("Closes settings and starts the Snow Monster encounter")
     }
 }
 

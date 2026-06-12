@@ -951,6 +951,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             papiAvatar?.update(dt: dt, tilt: tilt)
             encounterWorld?.update(dt: CGFloat(dt))
             encounterSystem.update(dt: dt, tilt: tilt)
+            // Impact snow chunks integrate on this same tick — and freeze
+            // with this same guard on game over (penguinslide-bo8).
+            encounterFX?.update(dt: dt)
 
             // Keep the score current with encounter income (dodge/volley
             // bonuses land in bonusPoints; the drip is frozen with the
@@ -1302,9 +1305,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         if phaseTime < meltDuration {
             // Melt beat: the encounter vista stays fully live — ground
-            // scrolls, Papi answers tilt — while the monster slumps.
+            // scrolls, Papi answers tilt — while the monster slumps. A
+            // final-ball hit's snow chunks settle through the melt too
+            // (penguinslide-bo8) instead of freezing as the outro starts.
             encounterWorld?.update(dt: CGFloat(dt))
             papiAvatar?.update(dt: dt, tilt: currentTilt())
+            encounterFX?.update(dt: dt)
             return
         }
 

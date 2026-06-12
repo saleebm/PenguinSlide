@@ -28,7 +28,6 @@ enum Sprite: String, CaseIterable {
     case snowMonsterRoar   = "SnowMonsterRoar"
     case snowMonsterMelt   = "SnowMonsterMelt"
     case snowball          = "Snowball"
-    case snowballBurst     = "SnowballBurst"
     case mountainBackdrop  = "MountainBackdrop"
     case perspectiveGround = "PerspectiveGround"
 }

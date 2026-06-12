@@ -247,10 +247,27 @@ enum Tuning {
         /// thread between frames, more forgiving for the monster); lower
         /// for a stricter "exactly at the camera plane" hit.
         static let depthWindow: CGFloat = 40
-        /// Lateral (world-unit) distance inside which an in-window ball
-        /// hits Papi. Raise for a bigger effective hitbox (harder dodges);
-        /// lower for a more forgiving one.
-        static let lateralHitRadius: CGFloat = 38
+        /// Fraction of `papiBaseSize` occupied by Papi's actual body in
+        /// the rear-view sheet (the sprite frame carries transparent
+        /// margins around the silhouette). Used to derive the hit radius.
+        static let papiBodyWidthFraction: CGFloat = 0.62
+        /// Fraction of `snowballBaseSize` that is solid ball (vs. the
+        /// fringe pixels around it) — the part that should count on
+        /// contact.
+        static let snowballCoreFraction: CGFloat = 0.75
+        /// Lateral distance (world units = screen points at z = 0) inside
+        /// which an in-window ball hits Papi. DERIVED from the visual
+        /// geometry — Papi's body half-width plus the ball's core radius —
+        /// so a ball that visibly overlaps the penguin always registers
+        /// as a hit (penguinslide-bo8: the old hand-tuned 38 pt covered
+        /// only the middle ~40% of the 180 pt sprite, so balls smacking
+        /// Papi's shoulders scored "+n" close-call dodges — which read as
+        /// "catching" on device). SnowballCollisionTests pins this
+        /// relation; tune difficulty via the fractions or `paceScale`,
+        /// never by re-hardcoding the radius.
+        static let lateralHitRadius: CGFloat =
+            papiBaseSize * papiBodyWidthFraction / 2
+            + snowballBaseSize * snowballCoreFraction / 2
         /// Lateral band for dodge *severity* scoring, distinct from
         /// `lateralHitRadius`: severity is measured at the miss boundary,
         /// so sharing the hit knob would score every dodge 0. A few

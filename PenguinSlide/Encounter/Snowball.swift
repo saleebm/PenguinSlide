@@ -31,8 +31,9 @@ import SpriteKit
 extension Tuning.Encounter {
     /// Snowball footprint (pt) at the camera plane, where the projector
     /// scale is exactly 1.0 — so this IS the full on-screen size a ball
-    /// reaches as it arrives. Sized against `lateralHitRadius` (38) so
-    /// the visual ball roughly matches the hit disc.
+    /// reaches as it arrives. `lateralHitRadius` is DERIVED from this
+    /// (core fraction) plus Papi's body width, so the hit disc always
+    /// matches the visuals (penguinslide-bo8).
     static let snowballBaseSize: CGFloat = 64
     /// Fraction of full lead applied when aiming at the avatar — the
     /// `Chase.leadFactor` PATTERN with an encounter-local value
