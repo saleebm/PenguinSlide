@@ -79,6 +79,28 @@ final class HUDController {
     func setScore(_ value: Int) { scoreLabel.text = "\(value)" }
     func setBest(_ value: Int)  { bestLabel.text = "Best: \(value)" }
 
+    // MARK: - Encounter mode (penguinslide-gyu.20)
+
+    /// True while the encounter HUD treatment is applied. `private(set)`
+    /// so tests can assert the mode without poking at private labels.
+    private(set) var isEncounterMode = false
+
+    /// Toggle the normal HUD for an encounter. Score, best, and combo HIDE
+    /// — the survival drip is paused with the gameplay clock during an
+    /// encounter, and a visibly frozen score reads as a bug. Hearts stay
+    /// VISIBLE and live: HP is shared with the encounter avatar, and the
+    /// heart row is the player's core damage feedback in both modes.
+    /// setScore/setBest keep updating the hidden labels, so restoring the
+    /// HUD needs no re-push. Idempotent.
+    func setEncounterMode(_ on: Bool) {
+        guard on != isEncounterMode else { return }
+        isEncounterMode = on
+        scoreLabel.isHidden = on
+        bestLabel.isHidden = on
+        comboLabel.isHidden = on
+        // hearts: deliberately untouched.
+    }
+
     /// Show / refresh the combo multiplier. Called when combo >= 2.
     func showCombo(_ combo: Int) {
         comboLabel.text = "×\(combo)"

@@ -16,6 +16,11 @@ struct SettingsView: View {
     /// path single-sourced through ContentView.
     let onDismiss: () -> Void
 
+    /// Armed state for the manual Snow Monster encounter trigger. Owned by
+    /// ContentView so it can act on it (queue the encounter) when the
+    /// settings overlay dismisses.
+    @Binding var snowMonsterArmed: Bool
+
     @State private var name: String = PlayerProfile.name
 
     /// Shield-ring blue from the game's existing palette. Used as the
@@ -30,6 +35,7 @@ struct SettingsView: View {
                     PlayerSection(accent: accent, name: $name)
                     GameplaySection(accent: accent)
                     HowToPlaySection(accent: accent)
+                    ExperimentalSection(accent: accent, snowMonsterArmed: $snowMonsterArmed)
                     AboutSection(accent: accent)
                 }
                 .padding(.horizontal, 22)
@@ -235,6 +241,62 @@ private struct HowToPlaySection: View {
     }
 }
 
+// Temporary manual entry point for the Snow Monster encounter ("for now" —
+// expected to fold into the debug menu or the proper game flow once the
+// encounter beads land; see penguinslide-gyu.30). Tapping arms a pending
+// trigger; ContentView queues the encounter when the overlay dismisses.
+private struct ExperimentalSection: View {
+    let accent: Color
+    @Binding var snowMonsterArmed: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionLabel(text: "Experimental", accent: accent)
+            Button {
+                snowMonsterArmed.toggle()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "snowflake.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(accent)
+                        .frame(width: 22, alignment: .center)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Snow Monster Mode")
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                        Text(snowMonsterArmed
+                             ? "Starts when you close settings"
+                             : "Play the encounter instead of the run")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.55))
+                    }
+                    Spacer()
+                    Image(systemName: snowMonsterArmed ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(snowMonsterArmed ? accent : .white.opacity(0.35))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(
+                            snowMonsterArmed ? accent.opacity(0.55) : Color.white.opacity(0.10),
+                            lineWidth: 1
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Snow Monster Mode")
+            .accessibilityValue(snowMonsterArmed ? "armed" : "off")
+            .accessibilityHint("Triggers the Snow Monster encounter when settings closes")
+        }
+    }
+}
+
 private struct AboutSection: View {
     let accent: Color
 
@@ -319,6 +381,6 @@ private extension Bundle {
     ZStack {
         LinearGradient(colors: [.blue, .black], startPoint: .top, endPoint: .bottom)
             .ignoresSafeArea()
-        SettingsView(onDismiss: {})
+        SettingsView(onDismiss: {}, snowMonsterArmed: .constant(false))
     }
 }

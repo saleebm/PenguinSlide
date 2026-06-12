@@ -25,6 +25,7 @@ If the version is below 0.14.0, upgrade via your trusted install path. Don't aut
 | `test-smoke.sh` | agent-device UI smoke loop | yes | optional (`BUILD=1`) |
 | `test-perf.sh` | agent-device perf capture | yes | optional (`BUILD=1`) |
 | `test-xcui.sh` | XCUITest target via `xcodebuild test` | no | yes (xcodebuild handles it) |
+| `test-unit.sh` | `PenguinSlideTests` unit bundle via `xcodebuild test` | no | yes (xcodebuild handles it) |
 
 All outputs land in `./test-evidence/` and are gitignored.
 
@@ -103,6 +104,25 @@ Test methods in `PenguinSlideUITests/PenguinSlideUITests.swift`:
 | `testRestartReturnsToPlayableState` | After forcing game-over and tapping `Tap to play again`, the overlay clears. |
 
 The target and scheme are wired in `project.yml`. Re-run `xcodegen generate` after editing it.
+
+## `test-unit.sh` and the unit-test target
+
+Runs the `PenguinSlideTests` host-app XCTest bundle (`bundle.unit-test` in `project.yml`, hosted in the PenguinSlide app so `@testable import PenguinSlide` works). This is where fast, pure-logic tests live (tuning math, and the encounter work's DepthProjector / EncounterTrigger / TiltSlideMotion / collision suites).
+
+```
+./test-unit.sh
+SIM_DEVICE_ID=<udid> ./test-unit.sh
+TEST=PenguinSlideTests/SmokeTests/testApplyTiltIntensityClampsAndStaysCoherent ./test-unit.sh
+REGEN=1 ./test-unit.sh                # re-run xcodegen first
+```
+
+| Env | Default | Effect |
+|---|---|---|
+| `SIM_DEVICE_ID` | first booted iPhone 17 Pro (or first available) | Target a specific simulator UDID. |
+| `TEST` | `PenguinSlideTests` (whole unit bundle) | `-only-testing:<identifier>` filter. |
+| `REGEN` | `0` | Set to `1` to re-run `xcodegen generate` (after editing `project.yml`). |
+
+Exact invocation (what the script runs): `xcodebuild test -project PenguinSlide.xcodeproj -scheme PenguinSlide -destination "platform=iOS Simulator,id=<udid>" -only-testing:PenguinSlideTests`. The script always passes `-only-testing` so it never drags in the slower XCUITest suite; `./test-xcui.sh` continues to run the UI suite (the scheme's test action now lists both bundles, and `test-xcui.sh` is unaffected because the full-suite run includes the fast unit bundle, while `TEST=...` filters still work as before).
 
 ## Known gotchas
 

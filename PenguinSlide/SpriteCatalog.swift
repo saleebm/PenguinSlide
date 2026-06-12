@@ -19,6 +19,18 @@ enum Sprite: String, CaseIterable {
     case icicleShatter  = "IcicleShatter"
     case iceTile        = "IceTile"
     case skyBackdrop    = "SkyBackdrop"
+
+    // Snow Monster encounter (sheets sliced by EncounterAnimations;
+    // source metadata in spritecook-assets.json).
+    case papiRearSlide     = "PapiRearSlide"
+    case snowMonsterIdle   = "SnowMonsterIdle"
+    case snowMonsterThrow  = "SnowMonsterThrow"
+    case snowMonsterRoar   = "SnowMonsterRoar"
+    case snowMonsterMelt   = "SnowMonsterMelt"
+    case snowball          = "Snowball"
+    case snowballBurst     = "SnowballBurst"
+    case mountainBackdrop  = "MountainBackdrop"
+    case perspectiveGround = "PerspectiveGround"
 }
 
 enum SpriteCatalog {

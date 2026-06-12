@@ -13,6 +13,9 @@ struct ContentView: View {
     // a known footgun on early iOS 15 betas and is still the right pattern.
     @State private var scene: GameScene?
     @State private var showingSettings = false
+    /// Armed by the "Snow Monster Mode" button in settings; consumed when
+    /// the overlay dismisses by queueing the encounter on the scene.
+    @State private var snowMonsterArmed = false
     /// Non-nil while the game-over page is up. Holds the finished round's
     /// result so GameOverView can render the score and new-best state.
     @State private var gameResult: GameResult?
@@ -45,7 +48,9 @@ struct ContentView: View {
                 }
             }
             .overlay {
-                SettingsOverlay(isPresented: showingSettings, onDismiss: closeSettings)
+                SettingsOverlay(isPresented: showingSettings,
+                                snowMonsterArmed: $snowMonsterArmed,
+                                onDismiss: closeSettings)
             }
             .overlay {
                 GameOverOverlay(result: gameResult, onPlayAgain: playAgain)
@@ -70,6 +75,14 @@ struct ContentView: View {
                     scene?.pauseForSettings()
                 } else {
                     scene?.resumeFromSettings()
+                    // Settings armed the Snow Monster trigger: hand it to the
+                    // scene now that it's unpaused. The scene auto-starts the
+                    // run if needed and enters the encounter on the next
+                    // update tick (via the phase machine's transition(to:)).
+                    if snowMonsterArmed {
+                        snowMonsterArmed = false
+                        scene?.queueEncounterStart()
+                    }
                 }
             }
         }
@@ -122,6 +135,7 @@ private struct GearButton: View {
 
 private struct SettingsOverlay: View {
     let isPresented: Bool
+    @Binding var snowMonsterArmed: Bool
     let onDismiss: () -> Void
 
     var body: some View {
@@ -140,7 +154,7 @@ private struct SettingsOverlay: View {
                 .accessibilityLabel("Dismiss settings")
                 .accessibilityAddTraits(.isButton)
 
-                SettingsView(onDismiss: onDismiss)
+                SettingsView(onDismiss: onDismiss, snowMonsterArmed: $snowMonsterArmed)
                     .transition(.scale(scale: 0.92).combined(with: .opacity))
             }
             // Keep the card anchored when the keyboard appears — without

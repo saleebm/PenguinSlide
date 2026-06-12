@@ -13,7 +13,11 @@ import SpriteKit
 final class Penguin {
 
     let node: SKSpriteNode
-    private(set) var vx: CGFloat = 0
+    /// Shared tilt→velocity integrator (TiltSlideMotion) — the single home
+    /// for the ice-feel math, also consumed by the encounter avatar so
+    /// both modes share one feel (penguinslide-gyu.3).
+    private var motion: TiltSlideMotion
+    var vx: CGFloat { motion.vx }
     private(set) var hp: Int = Tuning.Penguin.maxHealth
 
     /// Called whenever `hp` changes (hit accepted, or `reset()`). GameScene
@@ -49,10 +53,14 @@ final class Penguin {
     /// `0` means "no one-shot active."
     private var oneShotUntil: TimeInterval = 0
 
-    /// Builds the sprite + physics body and parents it to the given scene.
+    /// Builds the sprite + physics body and parents it to the given node —
+    /// GameScene's `worldRoot` container in practice (penguinslide-gyu.9),
+    /// so the whole side-view world hides/shows as one toggle around the
+    /// Snow Monster encounter. The container sits at the scene origin, so
+    /// all positions here remain numerically scene coordinates.
     /// `leftBound` / `rightBound` are the inside edges of the ice strip
     /// the penguin is clamped to.
-    init(scene: SKScene, baseY: CGFloat, leftBound: CGFloat, rightBound: CGFloat) {
+    init(parent: SKNode, baseY: CGFloat, leftBound: CGFloat, rightBound: CGFloat) {
         // Initial texture is the first frame of the idle loop so there's
         // no single-frame flicker between sprite creation and the first
         // `update()` tick (which is where `setState` runs).
@@ -100,13 +108,14 @@ final class Penguin {
         ring.blendMode = .add
         body.addChild(ring)
 
-        scene.addChild(body)
+        parent.addChild(body)
 
         self.node = body
         self.shieldRing = ring
         self.baseY = baseY
         self.leftBound = leftBound
         self.rightBound = rightBound
+        self.motion = TiltSlideMotion(leftBound: leftBound, rightBound: rightBound)
 
         startAnimation(for: .idle)
     }
@@ -115,22 +124,14 @@ final class Penguin {
     func update(dt: TimeInterval, tilt: CGFloat) {
         elapsed += dt
 
-        // Ice-feel: tilt sets a target velocity, actual velocity glides toward
-        // it. Exponential approach so dt-independent — same feel at any frame rate.
-        // Curve preserves sign but rewards aggressive tilts non-linearly.
-        let curvedTilt = (tilt < 0 ? -1 : 1) * pow(abs(tilt), Tuning.Penguin.tiltCurve)
-        let targetVx = curvedTilt * Tuning.Penguin.maxSpeed
-        // Asymmetric friction: snappy when pressing, glidey when released.
-        let rate: CGFloat = (tilt == 0) ? Tuning.Penguin.iceDecayRate : Tuning.Penguin.tiltResponseRate
-        let alpha = 1 - exp(-rate * CGFloat(dt))
-        vx += (targetVx - vx) * alpha
-
-        let halfW = node.size.width * 0.42
-        let minX = leftBound + halfW
-        let maxX = rightBound - halfW
-        var newX = node.position.x + vx * CGFloat(dt)
-        if newX < minX { newX = minX; vx = 0 }
-        if newX > maxX { newX = maxX; vx = 0 }
+        // Ice-feel velocity step + position integration/wall clamp both
+        // live in TiltSlideMotion (shared with the encounter avatar —
+        // see that file for the math). Position stays owned here: the
+        // integrator returns the new x and we write the node.
+        motion.update(dt: dt, tilt: tilt)
+        let newX = motion.integrate(x: node.position.x,
+                                    dt: dt,
+                                    halfWidth: node.size.width * 0.42)
 
         // Bob is computed here instead of via SKAction.moveBy — running the
         // action concurrently would race with this position write.
@@ -174,7 +175,7 @@ final class Penguin {
         // that fires on the rising edge and fades on the falling edge.
         // The ring is the primary "protected" tell; the alpha pulse is a
         // secondary cue for accessibility / motion-sensitive readouts.
-        let isInvulnerable = elapsed < invulnerableUntil
+        let isInvulnerable = self.isInvulnerable
         if isInvulnerable {
             if !wasInvulnerable { showShieldRing() }
             let lit = sin(elapsed * 2 * .pi * TimeInterval(Tuning.Penguin.iFrameFlashHz)) > 0
@@ -192,6 +193,24 @@ final class Penguin {
     /// accepted hit to decide whether to trigger game over.
     func isAlive() -> Bool { hp > 0 }
 
+    /// `true` while hit i-frames are armed. Exposed (read-only) for the
+    /// encounter avatar (PapiAvatar, penguinslide-gyu.11) so it renders
+    /// i-frame state off this penguin's single authoritative clock
+    /// instead of duplicating the timing.
+    var isInvulnerable: Bool { elapsed < invulnerableUntil }
+
+    /// Advance the local hit/i-frame clock WITHOUT running the side-view
+    /// motion/visual pass. During the Snow Monster encounter the penguin
+    /// is hidden and GameScene stops calling `update(dt:tilt:)`, which
+    /// would freeze `elapsed` and make a mid-encounter i-frame window
+    /// never expire; the encounter avatar ticks this every frame instead
+    /// so `tryTakeHit`'s i-frame timing stays real-time in both modes.
+    /// Exactly one of `update` / `tickHitClock` runs per frame, per mode
+    /// — calling both would double-advance the clock.
+    func tickHitClock(dt: TimeInterval) {
+        elapsed += dt
+    }
+
     /// Attempt to land a hit on the penguin. Returns `true` if HP was
     /// decremented, `false` if the hit was absorbed by active i-frames.
     /// The icicle still recoils visually either way — the caller decides
@@ -208,7 +227,7 @@ final class Penguin {
         // Pushed *away* from impact: if penguin is to the right of impact,
         // shove further right (positive vx).
         let dir: CGFloat = node.position.x >= impactX ? 1 : -1
-        vx += dir * Tuning.Penguin.maxSpeed * Tuning.Penguin.knockbackImpulseScale
+        motion.applyImpulse(direction: dir)
         triggerHurtAnimation()
         startAnimation(for: .hurt)
         onHealthChanged?(hp)
@@ -306,6 +325,25 @@ final class Penguin {
         ]))
     }
 
+    /// Outro partial reset (penguinslide-gyu.18): POSITION/MOTION channels
+    /// ONLY — recenters the sprite on the ice and zeroes the slide
+    /// velocity / lean / bob so the penguin re-enters the side view
+    /// standing clean at mid-strip. Zeroing `motion` also neutralizes the
+    /// stray knockback vx `tryTakeHit` pushed onto this hidden body during
+    /// the encounter (PapiAvatar re-applies that impulse to the avatar;
+    /// the side-view copy is meaningless — see PapiAvatar's header).
+    /// HP, i-frames, the hit clock, and the animation state are
+    /// deliberately untouched: hearts carry over across the outro by
+    /// construction (single HP source). Fresh rounds use `reset()`.
+    func recenter() {
+        node.position = CGPoint(x: (leftBound + rightBound) / 2, y: baseY)
+        node.zRotation = 0
+        node.physicsBody?.velocity = .zero
+        motion.reset()
+        bobPhase = 0
+        leanVelocity = 0
+    }
+
     func reset() {
         node.removeAllActions()
         // `removeAllActions` does not cascade to children — clear the
@@ -321,7 +359,7 @@ final class Penguin {
         node.zRotation = 0
         node.colorBlendFactor = 0
         node.physicsBody?.velocity = .zero
-        vx = 0
+        motion.reset()
         bobPhase = 0
         leanVelocity = 0
         elapsed = 0

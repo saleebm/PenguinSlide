@@ -29,6 +29,20 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E77E2B5A480421CB246D0C82"
+               BuildableName = "PenguinSlideTests.xctest"
+               BlueprintName = "PenguinSlideTests"
+               ReferencedContainer = "container:PenguinSlide.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "36DD02D52F6DBC62C57F7CE0"
                BuildableName = "PenguinSlideUITests.xctest"
                BlueprintName = "PenguinSlideUITests"
@@ -53,6 +67,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E77E2B5A480421CB246D0C82"
+               BuildableName = "PenguinSlideTests.xctest"
+               BlueprintName = "PenguinSlideTests"
+               ReferencedContainer = "container:PenguinSlide.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
          <TestableReference
             skipped = "NO"
             parallelizable = "NO">

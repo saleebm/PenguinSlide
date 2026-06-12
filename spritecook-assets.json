@@ -69,5 +69,134 @@
     "sha12_local": "2b8d31183844",
     "label": "Arctic sky backdrop — layered snowy mountains, clouds, icicle corners, snowdrift foreground. Pixel art, 16:9. Downsampled from 5504×3072 raw to 2048×1143 for ship. Used as launch screen AspectFill and in-game SkyBackdrop in GameScene.swift:161.",
     "asset_path": "PenguinSlide/Assets.xcassets/SkyBackdrop.imageset/sky.png"
+  },
+  "snow_monster_base": {
+    "asset_id": "bcaa94be-17d8-4f5e-adc3-9c6891976f6d",
+    "sha12_local": "2bf998b01f11",
+    "label": "Snow Monster boss still — menacing-charming snowman, icicle teeth, glowing blue eyes, branch arms. 76x76 after smart crop. Source for idle/throw/roar animations. reference_asset_id=penguin_base.",
+    "asset_path": "assets-staging/snow-monster/snow-monster-base.png"
+  },
+  "snow_monster_idle": {
+    "asset_id": "6224c317-fbd7-4082-8c1f-605836029c8a",
+    "sha12": "076286cde5d4",
+    "label": "Snow Monster idle loop — 12 frames, 88x88 each, 8fps. Slow menacing bob, swaying branch arms, snow dust off shoulders. Source: snow_monster_base.",
+    "frames": 12, "frame_size": "88x88", "fps": 8,
+    "output_format": "spritesheet", "loops": true,
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/SnowMonsterIdle.imageset/snow_monster_idle.png",
+    "staging_path": "assets-staging/snow-monster/snow-monster-idle.png",
+    "wiring": "Verified by penguinslide-gyu.24: imageset PNG sha12 matches, 1056x88 sheet slices cleanly into 12x 88x88 (no bleed). Sliced via Sprite.snowMonsterIdle + EncounterAnimations.monsterIdleFrameCount = 12, nearest-neighbor; looped by SnowMonster at animationFps = 8."
+  },
+  "snow_monster_throw": {
+    "asset_id": "5941420d-6f96-4a4a-a0fb-12886915da88",
+    "sha12": "ddb4e56b4da9",
+    "label": "Snow Monster wind-up + throw one-shot — 10 frames, 88x88 each, 8fps. Rears back gathering snowball, hurls it toward the camera. Source: snow_monster_base.",
+    "frames": 10, "frame_size": "88x88", "fps": 8,
+    "output_format": "spritesheet", "loops": false,
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/SnowMonsterThrow.imageset/snow_monster_throw.png",
+    "staging_path": "assets-staging/snow-monster/snow-monster-throw.png",
+    "wiring": "Verified by penguinslide-gyu.24: imageset PNG sha12 matches, 880x88 sheet slices cleanly into 10x 88x88 (no bleed). Sliced via Sprite.snowMonsterThrow + EncounterAnimations.monsterThrowFrameCount = 10. Release recalibrated to this art: ball departs on frame index 8 (SnowMonster.throwReleaseFrameIndex = 8; in-hand 6-7, departure smear 8, follow-through 9) and the throwing hand is the viewer-left arm raised high (SnowMonster.handOffsetFraction = (-0.35, 0.84))."
+  },
+  "snow_monster_roar": {
+    "asset_id": "aa1cd350-1d5a-4c79-96fe-045dc4ec8f2e",
+    "sha12": "1740d8b618d9",
+    "label": "Snow Monster roar/taunt one-shot — 8 frames, 88x88 each, 8fps. Head back, icicle mouth wide, arms shaking, snow bursting off. Source: snow_monster_base.",
+    "frames": 8, "frame_size": "88x88", "fps": 8,
+    "output_format": "spritesheet", "loops": false,
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/SnowMonsterRoar.imageset/snow_monster_roar.png",
+    "staging_path": "assets-staging/snow-monster/snow-monster-roar.png",
+    "wiring": "Verified by penguinslide-gyu.24: imageset PNG sha12 matches, 704x88 sheet slices cleanly into 8x 88x88 (no bleed). Sliced via Sprite.snowMonsterRoar + EncounterAnimations.monsterRoarFrameCount = 8, one-shot at animationFps = 8."
+  },
+  "snow_monster_melt": {
+    "asset_id": "b59e6ff2-437c-4f7b-82bc-f96ebfd2cc83",
+    "sha12": "f3b6103b70e9",
+    "label": "Snow Monster melt outro one-shot — 16 frames, 88x88 each, 8fps. Defeated slump: grin droops sad, icicle teeth drop off, branch arms fall flat, body sinks frame-by-frame into a flat snow puddle/mound; glowing blue eyes fade last (gone after frame 13). Clip is duration-stretched across Tuning.Encounter.meltDuration in-game (not fixed-fps). Source: snow_monster_base.",
+    "frames": 16, "frame_size": "88x88", "fps": 8,
+    "output_format": "spritesheet", "loops": false,
+    "placeholder": false,
+    "staging_path": "assets-staging/snow-monster/snow-monster-melt.png",
+    "asset_path": "PenguinSlide/Assets.xcassets/SnowMonsterMelt.imageset/snow_monster_melt.png",
+    "wiring": "Real SpriteCook sheet installed at asset_path (sha12 above) by penguinslide-6m5; EncounterAnimations.monsterMeltFrameCount = 16. Sliced by EncounterAnimations, played by SnowMonster.melt(duration:completion:) stretched across Tuning.Encounter.meltDuration. Frames 14-16 are near-identical settle/hold frames (intentional for the slow-melt hold)."
+  },
+  "snowball": {
+    "asset_id": "8c3ee52e-1458-4f3e-8cb0-8ed86483fe92",
+    "sha12_local": "26aa4ad2ce07",
+    "label": "Snowball projectile still — packed snow, bold silhouette, reads small (far) to large (near) for faux-3D scaling. 60x60 after smart crop.",
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/Snowball.imageset/snowball.png",
+    "staging_path": "assets-staging/snow-monster/snowball.png",
+    "wiring": "Verified by penguinslide-gyu.25: imageset PNG sha matches staging + sha12_local. Delivered as a single 60x60 still (no spin sheet), so the flight bead's manual zRotation spin integration stays (SnowMonsterEncounterSystem.layout, snowballSpinSpeedMin/Max) and EncounterAnimations carries no snowball flight frames. Rendered via Sprite.snowball at snowballBaseSize 64pt camera-plane footprint, nearest-neighbor via SpriteCatalog, depth-scaled through DepthProjector."
+  },
+  "snowball_trail": {
+    "asset_id": "9bbdd763-6b96-4495-9254-8907b19cc1ed",
+    "sha12_local": "3d94781833c9",
+    "label": "Snowball with motion trail variant — streaky trail to upper-left, flying toward viewer. 70x70 after smart crop.",
+    "placeholder": false,
+    "asset_path": "assets-staging/snow-monster/snowball-trail.png",
+    "wiring": "Final art delivered, staged only — no imageset yet. Wired by the snowball projectile bead (penguinslide-gyu.13) if a trail variant is used."
+  },
+  "papi_penguin_rear": {
+    "asset_id": "b1b8606d-efb6-46c6-b76a-c49c62f4830c",
+    "sha12_local": "a67598ca345c",
+    "label": "Papi Penguin rear view still — back-facing belly slide, matches penguin_base palette/proportions (reference_asset_id=penguin_base). 78x78 after smart crop. Source for rear-slide animation.",
+    "asset_path": "assets-staging/snow-monster/papi-penguin-rear.png"
+  },
+  "papi_penguin_rear_slide": {
+    "asset_id": "51a0b8ee-da00-4d80-b056-ae0cc5765334",
+    "sha12": "4b46a358b72b",
+    "label": "Papi Penguin rear-view slide loop — 8 frames, 90x90 each, 8fps. Forward bob with subtle left/center/right lean frames for tilt feedback. Source: papi_penguin_rear.",
+    "frames": 8, "frame_size": "90x90", "fps": 8,
+    "output_format": "spritesheet", "loops": true,
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/PapiRearSlide.imageset/papi_rear_slide.png",
+    "staging_path": "assets-staging/snow-monster/papi-penguin-rear-slide.png",
+    "dodge_decision": "No separate papiRearDodge sheet/case: lean frames are baked into this loop. PapiAvatar mirrors via xScale toward the dodge direction (plan U5 option B).",
+    "lean_decision": "Because lean is baked into the frames, PapiAvatar trims its zRotation lean spring target by Tuning.Encounter.papiLeanScale (0.6) so baked + rotated lean don't over-rotate; spring recipe/knobs stay shared with the side-view penguin (gyu.26).",
+    "continuity_qa": "Side-by-side vs PenguinSlide sheet (also 8x 90x90): same black body + orange feet palette, same rounded body ratio family; white belly correctly hidden from behind. Reads as the same character (gyu.26)."
+  },
+  "mountain_backdrop_perspective": {
+    "asset_id": "968039eb-0186-48ff-a425-3ad7b3305c5e",
+    "sha12_local": "01499d0ff23f",
+    "label": "Snow Monster encounter backdrop — snowy mountain range with one-point perspective valley corridor toward central vanishing point, 16:9, 426x238. reference_asset_id=sky_backdrop for palette consistency.",
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/MountainBackdrop.imageset/mountain_backdrop.png",
+    "staging_path": "assets-staging/snow-monster/mountain-backdrop-perspective.png",
+    "wiring": "Verified by penguinslide-gyu.25: imageset PNG sha matches staging + sha12_local. Full 426x238 vista (sky + ranges + painted valley floor); in-art horizon row measured at ~y131/238 from top, so EncounterWorld.buildBackdrop anchors at backdropHorizonInArtFraction = 0.45 to pin that row onto DepthProjector.horizonY (Tuning.Encounter.horizonYFraction 0.62 unchanged — geometry truth stays with the projector). Width-fit uniform scale; sky fill above the art top tinted to the art's top-edge sky (RGB ~138/230/249) so the seam is invisible. ART-FEEDBACK: top-left sun glow cannot be continued by the flat fill above the art — acceptable at current scale, revisit if the vista is regenerated taller. Crossfade palette vs SkyBackdrop checked statically (same sky family, reference_asset_id=sky_backdrop); on-device crossfade QA deferred to penguinslide-x06/gyu.29."
+  },
+  "ice_ground_perspective": {
+    "asset_id": "f5db79e1-d193-4395-a412-9e1757402073",
+    "sha12_local": "3a688356becc",
+    "label": "Ice ground perspective strip — frozen plane with converging cracks/speed streaks and lateral grooves for scroll-toward-camera motion, 16:9, 426x238. reference_asset_id=sky_backdrop.",
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/PerspectiveGround.imageset/perspective_ground.png",
+    "staging_path": "assets-staging/snow-monster/ice-ground-perspective.png",
+    "wiring": "Verified by penguinslide-gyu.25: imageset PNG sha matches staging + sha12_local. Consumed by EncounterWorld.buildBands as 8 full-width horizontal sub-texture slices (SKTexture(rect:in:), nearest-neighbor) — NOT via SpriteCatalog.tiled, so horizontal tiling is never exercised at runtime. Measured edge continuity anyway: leftmost vs rightmost column mean RGB delta ~27 (max 293) — the perspective plane does NOT tile horizontally; if a future consumer needs SpriteCatalog.tiled, request a dedicated tileable strip from the asset agent. Band smoothness feedback (Mina) tracked separately in penguinslide-hhz."
+  },
+  "snowball_impact_base": {
+    "asset_id": "2cac5aec-9322-4097-aad7-0005943613bb",
+    "sha12_local": "3f8cf4efe3c9",
+    "label": "Snowball impact splat still — burst at peak spread, white core + blue-shadowed chunks. 66x66 after smart crop. Source for the burst animation.",
+    "asset_path": "assets-staging/snow-monster/snowball-impact-base.png"
+  },
+  "snowball_impact_burst": {
+    "asset_id": "3caf64b2-1743-4e5f-abcf-35ac601a0f16",
+    "sha12": "4427f99f21aa",
+    "label": "Snowball impact burst one-shot — 8 frames, 74x74 each, 8fps. Splat shatters radially, powder puff dissipates to faded final frame. Source: snowball_impact_base.",
+    "frames": 8, "frame_size": "74x74", "fps": 8,
+    "output_format": "spritesheet", "loops": false,
+    "placeholder": false,
+    "asset_path": "PenguinSlide/Assets.xcassets/SnowballBurst.imageset/snowball_impact_burst.png",
+    "staging_path": "assets-staging/snow-monster/snowball-impact-burst.png",
+    "wiring": "Wired by the impact/dodge FX bead (penguinslide-gyu.16): Sprite.snowballBurst + EncounterAnimations.snowballBurstFrames (8 frames, 8fps, one-shot); played by EncounterFX.playHitBurst anchored on Papi."
+  },
+  "encounter_warning_emblem": {
+    "asset_id": "fe776d3c-15e7-4d71-9bc8-659bd780b94d",
+    "sha12_local": "cdd9f6b58d82",
+    "label": "Encounter telegraph UI emblem — gold '!' in rounded triangle badge with icy border and snowman silhouette, mode=ui. 60x60 after smart crop.",
+    "placeholder": false,
+    "asset_path": "assets-staging/snow-monster/encounter-warning-emblem.png",
+    "wiring": "Final art delivered, staged only — no imageset yet. Wired by the encounter telegraph/intro bead when the warning UI lands."
   }
 }
