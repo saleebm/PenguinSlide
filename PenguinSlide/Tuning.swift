@@ -240,6 +240,69 @@ enum Tuning {
         /// than launch.
         static let zAccel: CGFloat = baseZAccel * paceScale * paceScale
 
+        // MARK: Volley — snowball flight (Snowball)
+
+        /// Snowball footprint (pt) at the camera plane, where the projector
+        /// scale is exactly 1.0 — so this IS the full on-screen size a ball
+        /// reaches as it arrives. `lateralHitRadius` is DERIVED from this
+        /// (core fraction) plus Papi's body width, so the hit disc always
+        /// matches the visuals (penguinslide-bo8).
+        static let snowballBaseSize: CGFloat = 64
+        /// Dodged-ball exit beat (penguinslide-sct follow-up, Mina: balls
+        /// must not blink out at the camera plane — they should "go
+        /// underneath the window"). Screen-space one-shot on the retired
+        /// node: continue outward/down past the bottom edge, swelling as a
+        /// passing object would, sizzling out over the last stretch.
+        /// Duration (s) of the exit slide.
+        static let dodgeExitDuration: TimeInterval = 0.22
+        /// Scale multiplier reached by the end of the exit (the "passes the
+        /// camera" swell).
+        static let dodgeExitScale: CGFloat = 1.9
+        /// Extra travel (pt) past the node's own height below y = 0, so the
+        /// swelled sprite fully clears the bottom edge before removal.
+        static let dodgeExitDropExtra: CGFloat = 140
+        /// Fraction of the ball's offset from the vanishing point added as
+        /// lateral exit drift — passing objects spread OUTWARD from screen
+        /// center under perspective.
+        static let dodgeExitLateralFactor: CGFloat = 0.6
+        /// Fraction of full lead applied when aiming at the avatar — the
+        /// `Chase.leadFactor` PATTERN with an encounter-local value
+        /// (predicted = worldX + vx × flightTime × this). 1.0 = perfect
+        /// intercept; < 1 leaves dodge room. Raise for meaner aim.
+        static let snowballLeadFactor: CGFloat = 0.35
+        /// Max |aim jitter| (world pt) around the predicted intercept, the
+        /// `Chase.jitter*` role. Raise for a looser, more random volley.
+        static let snowballAimJitter: CGFloat = 60
+        /// Probability a throw carries lateral drift (a curving ball).
+        static let snowballDriftChance: Double = 0.35
+        /// Max |lateral drift| (world pt/s) for curving balls. Keep small
+        /// relative to Papi's dodge speed so curves read as flavor, not aim.
+        static let snowballDriftVxMax: CGFloat = 45
+        /// Spin range (rad/s): each ball rolls in flight at a random rate in
+        /// [min, max] with a random sign. Integrated MANUALLY (zRotation +=
+        /// spin × dt) — no SKAction — so the spin freezes/resumes/pauses in
+        /// exact lockstep with the flight integration.
+        static let snowballSpinSpeedMin: CGFloat = 1.0
+        static let snowballSpinSpeedMax: CGFloat = 4.0
+        /// Height (world pt above the projected ground line) at which a ball
+        /// ARRIVES at the camera plane — Papi's body, not his feet, so an
+        /// on-target ball visually flies into the avatar.
+        static let snowballArrivalHeight: CGFloat = 70
+        /// Height (world pt) at which a ball SPAWNS: the monster's throwing
+        /// hand. Derived from the SnowMonster hand calibration so the ball's
+        /// projected spawn position coincides EXACTLY with
+        /// `SnowMonster.snowballSpawnPoint()` (asserted by tests) — the
+        /// projection of (worldX + handX·size, ground + handY·size) at
+        /// zMonster is the hand point by linearity.
+        static var snowballSpawnHeight: CGFloat {
+            SnowMonster.handOffsetFraction.y * monsterBaseSize
+        }
+        /// zPosition band inside encounterRoot reserved for snowballs by the
+        /// EncounterWorld z-stack doc (10..49, above the monster's slot at
+        /// 10, below Papi's 50..59). Near = camera plane, far = zMonster.
+        static let snowballZPositionNear: CGFloat = 48
+        static let snowballZPositionFar: CGFloat = 12
+
         // MARK: Geometry
 
         /// Monster's depth station (virtual pt from the camera plane).
@@ -308,6 +371,62 @@ enum Tuning {
         /// shipped knobs). Raise to bulk the monster up; lower to shrink
         /// it without moving its depth station.
         static let monsterBaseSize: CGFloat = 360
+        /// Papi sprite footprint (pt) at the camera plane, where the
+        /// projector scale is exactly 1.0 — so this IS the on-screen size.
+        /// Comparable to the interim placeholder (scene height × 0.22 on an
+        /// iPhone). Raise to bulk Papi up; lower for a smaller silhouette.
+        static let papiBaseSize: CGFloat = 180
+
+        // MARK: Geometry — forward-slide scenery (EncounterWorld)
+
+        /// Pace-1.0 base for `groundScrollSpeed` (see `paceScale`,
+        /// penguinslide-fr7). Edit this only to change the forward-slide
+        /// read relative to ball speed; edit `paceScale` for overall pace.
+        static let baseGroundScrollSpeed: CGFloat = 240
+        /// Ground scroll speed (virtual depth units/s toward the camera).
+        /// Raise for a faster forward-slide read; keep below `zSpeedStart`
+        /// so snowballs always visibly outpace the ground (both scale by
+        /// the same `paceScale`, so the base relation is preserved —
+        /// `EncounterPaceTests` asserts it). Derived: base × `paceScale`
+        /// (= 312 at pace 1.3).
+        static let groundScrollSpeed: CGFloat = baseGroundScrollSpeed * Tuning.Encounter.paceScale
+        /// Number of recycled ground depth-bands. More bands = denser cadence
+        /// (and more per-frame projections); fewer reads choppier. Raised 8 → 12
+        /// for penguinslide-hhz: at 8 the inter-band gaps near the camera —
+        /// where the projection derivative is largest — strobed visibly on
+        /// device. Pooled once at init, so the only recurring cost is 12 trivial
+        /// projections per frame.
+        static let groundBandCount: Int = 12
+        /// Fraction of the band span over which a freshly wrapped band fades IN
+        /// at the far (horizon) end, hiding the z-wrap teleport.
+        static let groundBandFarFadeFraction: CGFloat = 0.15
+        /// Fraction of the band span over which a band fades OUT approaching the
+        /// camera plane (z → 0), mirroring the far fade-in so the wrap is
+        /// invisible at BOTH ends (penguinslide-hhz near-plane pop fix). The
+        /// fade also softens exactly the region where per-frame screen-space
+        /// steps are biggest, masking near-plane jitter. At groundScrollSpeed
+        /// 312 (pace 1.3) and zSpan 1350 this is ~26 frames of fade
+        /// (~0.04 alpha/frame at 60 fps).
+        static let groundBandNearFadeFraction: CGFloat = 0.10
+        /// Band thickness in points at the camera plane (scales with depth).
+        static let groundBandThickness: CGFloat = 26
+        /// Depth span of the band field as a multiple of `zMonster`, so bands
+        /// recycle behind the monster's station rather than popping at it.
+        static let groundSpanFactor: CGFloat = 1.5
+        /// Snow speed-line particle count (pooled once).
+        static let speedLineCount: Int = 14
+        /// Speed-line z-speed as a multiple of `groundScrollSpeed` — the
+        /// relative-wind cue. 1.0 would pin flakes to the ground.
+        static let speedLineSpeedFactor: CGFloat = 1.6
+        /// Vertical fraction (measured from the art's BOTTOM edge) of the
+        /// mountain backdrop's internal horizon row — where the painted valley
+        /// floor meets the distant range at the vanishing point (~row 131 of
+        /// 238 from the top in the shipped 426x238 SpriteCook vista). The
+        /// backdrop anchors here so its in-art horizon sits EXACTLY on
+        /// `DepthProjector.horizonY`: geometry truth stays with the projector
+        /// (`horizonYFraction`), and this knob is how the ART placement bends
+        /// to it (gyu.25). Re-measure if the backdrop art is regenerated.
+        static let backdropHorizonInArtFraction: CGFloat = 0.45
 
         // MARK: Feel
 
@@ -353,6 +472,49 @@ enum Tuning {
         static let monsterShuffleEnabled = false
         /// Max |offset| (world units) from the home lane per shuffle.
         static let monsterShuffleRange: CGFloat = 120
+
+        // MARK: Feel — impact / dodge FX (EncounterFX)
+
+        /// Powder-puff core footprint (pt) at avatar depth scale 1.0 — the
+        /// soft white pop under the chunk burst. It should swallow the
+        /// ~64 pt ball without covering the whole 180 pt avatar. Raise for
+        /// a beefier impact read; lower for a subtler one.
+        static let impactPuffBaseSize: CGFloat = 96
+        /// Puff one-shot lifetime (s): swells to ~1.25× while fading out.
+        static let impactPuffDuration: TimeInterval = 0.32
+        /// Snow chunks launched by an accepted hit (HP lost); the i-frame
+        /// absorbed branch spawns the smaller count. Per-hit node creation
+        /// only — never per-frame.
+        static let impactChunkCount: Int = 10
+        static let impactChunkCountAbsorbed: Int = 6
+        /// Chunk radial launch speed range (pt/s at depth scale 1.0).
+        static let impactChunkSpeedMin: CGFloat = 150
+        static let impactChunkSpeedMax: CGFloat = 330
+        /// Manual gravity on chunks (pt/s² at depth scale 1.0) — the
+        /// integrate-it-yourself doctrine shared with IcicleSystem's shards.
+        static let impactChunkGravity: CGFloat = 1050
+        /// Chunk lifetime (s); alpha ramps to 0 across it, then the node is
+        /// removed by the integration tick.
+        static let impactChunkLifetime: TimeInterval = 0.6
+        /// Chunk sprite size range (pt at depth scale 1.0).
+        static let impactChunkSizeMin: CGFloat = 7
+        static let impactChunkSizeMax: CGFloat = 15
+        /// Softer-pop multiplier for i-frame-absorbed hits — scales chunk
+        /// count/speed and puff size/alpha, mirroring onIcicleHitPenguin's
+        /// accepted == false branch. Raise toward 1 to make absorbed hits
+        /// read as loud as real ones. (Named distinctly from the AUDIO
+        /// `impactAbsorbedScale`, which ducks the impact sample's volume.)
+        static let impactFXSoftenScale: CGFloat = 0.65
+        /// Minimum dodge severity (∈ [0, 1]) that earns the light haptic
+        /// tick. Raise so only hair's-breadth shaves buzz; lower for more
+        /// generous physical feedback (1.0 silences dodge haptics).
+        static let dodgeHapticSeverity: CGFloat = 0.5
+        /// Speed-line whoosh accent: lines per dodge at severity 1 (lerps
+        /// down to 1 line at severity 0). Per-dodge node creation only —
+        /// never per-frame.
+        static let dodgeAccentLineCountMax: Int = 4
+        /// Lifetime (s) of one speed-line accent before it self-removes.
+        static let dodgeAccentDuration: TimeInterval = 0.28
 
         // MARK: Audio (penguinslide-gyu.28)
 
