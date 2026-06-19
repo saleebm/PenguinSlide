@@ -296,7 +296,6 @@ final class EncounterFX {
             // flicker carries the "still invulnerable" message.
             puff.alpha = 0.8
         }
-        puff.setScale(0.7)
         parent.addChild(puff)
         let dur = Tuning.Encounter.impactPuffDuration
         runTracked(puff, .sequence([

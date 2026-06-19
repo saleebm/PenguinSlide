@@ -220,7 +220,12 @@ final class EncounterFXTests: XCTestCase {
     /// coherent frozen frame. (Chunks need no isPaused: they're frozen
     /// by the update guard — ticks stop on game over.)
     func testPauseActionsFreezesLiveFXNodes() {
-        let (fx, _, _) = make()
+        // Retain the parent: EncounterFX holds it weakly, so a discarded
+        // parent deallocates before playHitBurst/playDodgeAccent can
+        // parent any node (their `guard let parent` bails) — the FX
+        // helper would have nothing live to freeze.
+        let (fx, parent, _) = make()
+        _ = parent
         fx.playHitBurst(at: .zero, depthScale: 1.0, accepted: true)
         fx.playDodgeAccent(at: .zero, severity: 1.0, direction: 1)
         XCTAssertFalse(fx.activeFX.isEmpty)

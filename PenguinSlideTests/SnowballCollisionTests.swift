@@ -143,19 +143,27 @@ final class SnowballCollisionTests: XCTestCase {
 
     func testDodgeSeverityProportionalToClosenessAtCrossing() {
         let papi: CGFloat = 195
-        // A 60 pt near-miss against the shipped (derived) severityRadius.
+        // Both misses must clear the derived hit radius (else they
+        // connect, not dodge) yet sit inside severityRadius so closeness
+        // still scores. Expressed off `hitRadius` so the relation holds
+        // when the geometry knobs move (companion to
+        // testSystemDodgeFiresOnceWithSeverityAndScreenPoint).
+        let nearMiss = hitRadius + 40   // ≈ 119.8 pt
+        let farMiss  = hitRadius + 100  // ≈ 179.8 pt
         let near = SnowMonsterEncounterSystem.resolve(
-            previousZ: 3, z: -1, ballWorldX: papi + 60, papiWorldX: papi)
-        XCTAssertEqual(near, .dodged(severity: 1 - 60 / sevRadius),
-                       "severity must be 1 − miss/severityRadius at the crossing frame")
-
-        // Closer shave scores strictly higher.
+            previousZ: 3, z: -1, ballWorldX: papi + nearMiss, papiWorldX: papi)
+        // Extract + accuracy-compare the severity (the dodgeSeverity
+        // clamp's min/max introduces last-ULP drift vs. a raw
+        // `1 − miss/radius`), mirroring
+        // testSystemDodgeFiresOnceWithSeverityAndScreenPoint.
         guard case .dodged(let sevNear) = near,
               case .dodged(let sevFar) = SnowMonsterEncounterSystem.resolve(
-                previousZ: 3, z: -1, ballWorldX: papi + 120, papiWorldX: papi)
+                previousZ: 3, z: -1, ballWorldX: papi + farMiss, papiWorldX: papi)
         else { return XCTFail("both balls must resolve .dodged") }
+        XCTAssertEqual(sevNear, 1 - nearMiss / sevRadius, accuracy: 1e-6,
+                       "severity must be 1 − miss/severityRadius at the crossing frame")
         XCTAssertGreaterThan(sevNear, sevFar,
-                             "a 60 pt miss must out-score a 120 pt miss — severity ∝ closeness")
+                             "a closer miss must out-score a farther one — severity ∝ closeness")
     }
 
     func testFarMissYieldsSeverityZeroButStillResolvesDodged() {
@@ -247,8 +255,15 @@ final class SnowballCollisionTests: XCTestCase {
         let dt: CGFloat = 1.0 / 60.0
         let zSpeed: CGFloat = 100      // slow: many in-window frames
         let driftVx: CGFloat = -150    // curving toward papi
-        var z: CGFloat = 50
-        var worldX = papi + 80         // entry miss 80 ≥ hitRadius — clear
+        // Enter AT the window edge already laterally CLEAR (miss just
+        // over the derived hitRadius) so the first in-window frames read
+        // .none, then drift inside the radius before the plane. Derived
+        // off hitRadius so the mid-band-capture intent survives geometry
+        // knob edits (the old literal 80 sat 0.2 pt outside the grown
+        // ~79.8 radius — it connected on entry, never showing a clear
+        // in-window frame).
+        var z: CGFloat = window
+        var worldX = papi + (hitRadius + 10)   // entry miss > hitRadius — clear
         var sawInWindowMiss = false
         var hit: (z: CGFloat, miss: CGFloat)?
         var frames = 0
@@ -356,24 +371,33 @@ final class SnowballCollisionTests: XCTestCase {
 
         let dt: TimeInterval = 1.0 / 60.0
         var frames = 0
-        var elapsedAtHit: CGFloat?
+        // Reconstruct the ball's ACTUAL depth as it flies. Flight is NOT
+        // linear: it integrates with zAccel via semi-implicit Euler
+        // (speed first, then position from the new speed — see
+        // updateProjectiles), so a `zMonster − zSpeedStart·t` linear
+        // model overshoots badly. Mirror that exact integration here so
+        // `zAtHit` is the post-step depth on the resolving frame (the ball
+        // is consumed that same sweep, so it can't be read back off the
+        // model afterward).
+        var simZ = Tuning.Encounter.zMonster
+        var simSpeed = Tuning.Encounter.zSpeedStart
+        var zAtHit: CGFloat?
         while !system.snowballs.isEmpty, frames < 600 {
             system.update(dt: dt, tilt: 0)
             frames += 1
-            if hits.count == 1, elapsedAtHit == nil {
-                elapsedAtHit = CGFloat(frames) * CGFloat(dt)
-            }
+            simSpeed = max(simSpeed + Tuning.Encounter.zAccel * CGFloat(dt), 1)
+            simZ -= simSpeed * CGFloat(dt)
+            if hits.count == 1, zAtHit == nil { zAtHit = simZ }
         }
 
         XCTAssertEqual(hits.count, 1,
                        "a dead-center ball must resolve .hit EXACTLY once across consecutive frames (got \(hits.count))")
         XCTAssertEqual(dodges, 0, "a connecting ball must never also report a dodge")
         // The hit landed inside the depth window, not at spawn or cull.
-        if let t = elapsedAtHit {
-            let zAtHit = Tuning.Encounter.zMonster - Tuning.Encounter.zSpeedStart * t
+        if let zAtHit {
             XCTAssertLessThan(zAtHit, window,
                               "hit fired at z=\(zAtHit), above the depth window")
-            XCTAssertGreaterThan(zAtHit, -Tuning.Encounter.zSpeedStart * CGFloat(dt),
+            XCTAssertGreaterThan(zAtHit, -Tuning.Encounter.zSpeedEnd * CGFloat(dt),
                                  "hit fired after the ball should have been culled")
         }
         // Consumed: callback payload carries the worldX (tryTakeHit's
