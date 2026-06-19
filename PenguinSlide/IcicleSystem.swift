@@ -13,6 +13,13 @@ import UIKit
 final class IcicleSystem {
 
     private weak var scene: SKScene?
+    /// Visual parent for everything this system spawns (icicles, shadows,
+    /// shards, bursts, puffs) — GameScene's `worldRoot` container
+    /// (penguinslide-gyu.9), so the side-view world hides as one toggle
+    /// during the Snow Monster encounter. Audio nodes deliberately stay on
+    /// `scene`: a hidden+paused container would freeze SKAudioNode actions
+    /// mid-clip, and audio is not part of the visual world swap.
+    private weak var parent: SKNode?
     private weak var camera: SKCameraNode?
     private weak var penguin: Penguin?
 
@@ -148,11 +155,12 @@ final class IcicleSystem {
         return tex
     }()
 
-    init(scene: SKScene, camera: SKCameraNode, penguin: Penguin,
+    init(scene: SKScene, parent: SKNode, camera: SKCameraNode, penguin: Penguin,
          iceTopY: CGFloat, iceLandingY: CGFloat,
          iceLeftX: CGFloat, iceRightX: CGFloat,
          sceneSize: CGSize) {
         self.scene = scene
+        self.parent = parent
         self.camera = camera
         self.penguin = penguin
         self.iceTopY = iceTopY
@@ -200,17 +208,77 @@ final class IcicleSystem {
 
     /// Remove all icicles and shards. Called by GameScene.restart().
     func reset() {
-        guard let scene else { return }
+        guard let parent else { return }
         // Tracked arrays only cover falling icicles; warning-phase icicles
         // still live as named children, so enumerate covers both paths.
-        scene.enumerateChildNodes(withName: "icicle") { node, _ in node.removeFromParent() }
-        scene.enumerateChildNodes(withName: "icicleShadow") { node, _ in node.removeFromParent() }
+        // Everything this system spawns is a direct child of `parent`
+        // (worldRoot), so the enumeration scope follows the re-parenting.
+        parent.enumerateChildNodes(withName: "icicle") { node, _ in node.removeFromParent() }
+        parent.enumerateChildNodes(withName: "icicleShadow") { node, _ in node.removeFromParent() }
         for entry in activeShards { entry.node?.removeFromParent() }
         for entry in fallingIcicles { entry.shadow?.removeFromParent() }
         for b in activeBursts { b.removeFromParent() }
         fallingIcicles.removeAll(keepingCapacity: true)
         activeShards.removeAll(keepingCapacity: true)
         activeBursts.removeAll()
+        timeSinceLastSpawn = 0
+        nextSpawnInterval = Tuning.Icicle.spawnIntervalStart
+    }
+
+    /// Post-encounter grace (penguinslide-gyu.18): hold the spawn timer
+    /// `seconds` BELOW zero, so the next spawn becomes due no sooner than
+    /// `seconds + nextSpawnInterval` of .normal-phase time from now (the
+    /// timer only advances inside `update`, which GameScene calls only in
+    /// the .normal phase — outro time costs nothing). The difficulty ramp
+    /// is deliberately untouched: `elapsed` is the caller's frozen-during-
+    /// encounters gameplay clock, so cadence/gravity resume exactly where
+    /// the intro left them once spawning restarts.
+    func holdSpawns(for seconds: TimeInterval) {
+        timeSinceLastSpawn = -seconds
+    }
+
+    /// True when any FALLING icicle's x sits within `window` points of `x` —
+    /// the encounter trigger's danger-window read (penguinslide-gyu.17): the
+    /// intro sweep clears all icicles, so firing while one bears down on the
+    /// penguin would erase a deserved hit. WARNING-PHASE icicles are
+    /// deliberately not consulted (decision per the bead's polish note 1):
+    /// they cannot hit anything yet, and `sweepClear()` pops them at intro
+    /// entry before they ever detach, so a warning icicle can never turn
+    /// into a mid-transition threat.
+    func hasIcicleNear(x: CGFloat, window: CGFloat) -> Bool {
+        fallingIcicles.contains { entry in
+            guard let icicle = entry.node else { return false }
+            return abs(icicle.position.x - x) <= window
+        }
+    }
+
+    /// Intro icicle sweep (penguinslide-gyu.17): every live icicle —
+    /// falling AND warning-phase (a warning icicle would otherwise detach
+    /// mid-intro) — pops with a LOW-severity shatter at its current
+    /// position, so the field visibly clears rather than blinking out.
+    /// Shards/bursts self-clean via their own SKActions; the intro's
+    /// midpoint `reset()` (behind the peak white flash) scrubs any
+    /// stragglers. Also resets the spawn cadence so re-entry after the
+    /// outro starts from a fresh interval, mirroring `reset()`.
+    func sweepClear() {
+        guard let parent else { return }
+        // Low severity: a small visible pop per icicle, deliberately
+        // quieter than a real landing — this is a transition flourish,
+        // not an impact.
+        let sweepSeverity: CGFloat = 0.3
+        parent.enumerateChildNodes(withName: "icicle") { node, _ in
+            if let icicle = node as? SKSpriteNode {
+                self.shatterIcicle(at: icicle.position,
+                                   severity: sweepSeverity,
+                                   scale: icicle.size.width / 45)
+            }
+            node.removeFromParent()
+        }
+        parent.enumerateChildNodes(withName: "icicleShadow") { node, _ in
+            node.removeFromParent()
+        }
+        for entry in fallingIcicles { entry.shadow?.removeFromParent() }
+        fallingIcicles.removeAll(keepingCapacity: true)
         timeSinceLastSpawn = 0
         nextSpawnInterval = Tuning.Icicle.spawnIntervalStart
     }
@@ -336,7 +404,7 @@ final class IcicleSystem {
     // MARK: - Spawn
 
     private func spawnIcicle(elapsed: TimeInterval) {
-        guard let scene else { return }
+        guard let parent else { return }
         let width = CGFloat.random(in: 36...54)
         let height = width * CGFloat.random(in: 2.4...3.4)
 
@@ -368,7 +436,7 @@ final class IcicleSystem {
         icicle.position = CGPoint(x: spawnX, y: spawnY)
         icicle.zPosition = 5
         icicle.name = "icicle"
-        scene.addChild(icicle)
+        parent.addChild(icicle)
         crackAudioNode?.run(crackRestart)
 
         // Telegraph: shake + crack overlay growing.
@@ -429,7 +497,7 @@ final class IcicleSystem {
             shadow.zPosition = 9.5
             shadow.setScale(Tuning.Feel.shadowMinScale)
             shadow.alpha = Tuning.Feel.shadowMinAlpha
-            self.scene?.addChild(shadow)
+            self.parent?.addChild(shadow)
 
             self.fallingIcicles.append(FallingIcicle(node: icicle,
                                                     shadow: shadow,
@@ -441,7 +509,7 @@ final class IcicleSystem {
     }
 
     private func spawnSnowPuff(at p: CGPoint) {
-        guard let scene else { return }
+        guard let parent else { return }
         for _ in 0..<5 {
             // SKSpriteNode + cached texture is ~an order of magnitude cheaper
             // than a per-particle SKShapeNode with a fresh circle path.
@@ -449,7 +517,7 @@ final class IcicleSystem {
             f.setScale(CGFloat.random(in: 0.5...1.0))
             f.position = p
             f.zPosition = 4
-            scene.addChild(f)
+            parent.addChild(f)
             let dx = CGFloat.random(in: -20...20)
             let dy = CGFloat.random(in: -10...10)
             f.run(.sequence([
@@ -553,7 +621,7 @@ final class IcicleSystem {
     private func shatterIcicle(at p: CGPoint, severity: CGFloat, scale: CGFloat = 1.0,
                                countOverride: Int? = nil,
                                speedScaleOverride: CGFloat? = nil) {
-        guard let scene else { return }
+        guard let parent else { return }
         let s = max(0, min(1, severity))
         let count = countOverride
             ?? (Tuning.Feel.shardCountMin
@@ -566,7 +634,7 @@ final class IcicleSystem {
             shard.zPosition = 6
             shard.zRotation = CGFloat.random(in: 0...(.pi * 2))
             shard.name = "shard"
-            scene.addChild(shard)
+            parent.addChild(shard)
 
             let pb = SKPhysicsBody(circleOfRadius: 2)
             pb.isDynamic = true
@@ -604,7 +672,7 @@ final class IcicleSystem {
         // surface instead of rendering half-buried at the ground line.
         burst.position = CGPoint(x: p.x, y: p.y + burstSize * 0.35)
         burst.zPosition = 7
-        scene.addChild(burst)
+        parent.addChild(burst)
         activeBursts.append(burst)
         let anim = SKAction.animate(with: IcicleAnimations.shatterFrames,
                                     timePerFrame: 1.0 / TimeInterval(Tuning.Feel.shatterAnimFps),

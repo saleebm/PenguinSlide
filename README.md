@@ -85,6 +85,34 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `crackBurstShards` | Shard count for a confirmed-damage penguin hit (separate from the landing-on-ice burst). |
 | `crackBurstSpeedScale` | Pop-speed multiplier for the penguin-contact crack burst. |
 
+### `Tuning.Encounter`: snow-monster dodge sequence
+
+| Knob | Effect |
+|---|---|
+| `paceScale` | **Master pace multiplier** — scales `zSpeedStart/End` + `groundScrollSpeed` up and `throwIntervalStart/End` + `telegraphDuration` down together. One number = whole-encounter intensity (1.0 = original feel; 1.3 ships ≈30% faster). Dodgeability at the current pace is enforced by `EncounterPaceTests`. |
+| `baseZAccel` | In-flight snowball **acceleration** (pt/s² at pace 1.0; live value scales by `paceScale`²). Balls launch at `zSpeed` — keeping the telegraph reaction window — then rush as they approach. `0` restores constant-speed flight. Aim lead and the dodgeability tests use the exact accelerated flight time (`snowballFlightTime`). |
+| `minRunTime` | Run seconds before the first encounter can roll. Lower = monster shows up sooner. |
+| `minSpacing` | Minimum seconds between encounters. Lower = back-to-back pressure possible. |
+| `perSecondChance` | Probability rolled per eligible second that an encounter fires. Higher = more frequent. |
+| `maxPerRun` | Hard cap on encounters per run (`.max` = uncapped, so `triggerScoreBracket` is the only per-run limiter). |
+| `triggerScoreBracket` | Score-bracket rate limit: at most one random encounter per this many points (250 = a fresh chance roughly every 250 points). Manual/debug entries bypass it. |
+| `volleyCountStart / End` | Snowballs per encounter at early vs. peak run progress (lerped at trigger time). |
+| `throwIntervalStart / End` | Seconds between throws at early vs. peak run progress. Lower = denser volley. |
+| `zSpeedStart / End` | Snowball depth speed (units/s toward camera) at early vs. peak. Higher = shorter reaction window. |
+| `zMonster` | Monster's depth station. Higher = further away (smaller, longer ball flight). |
+| `focal` | Perspective constant (`scale = focal / (focal + z)`). Lower = more aggressive depth exaggeration. |
+| `horizonYFraction` | Horizon line height as a fraction of scene height. |
+| `papiPlaneYFraction` | Papi's screen-y plane (z = 0) as a fraction of scene height. |
+| `depthWindow` | Depth band around Papi's plane where a ball can connect. Higher = thicker hit slab. |
+| `lateralHitRadius` | Lateral distance for an in-window ball to hit Papi. Higher = harder dodges. |
+| `severityRadius` | Lateral band for dodge-severity scoring, wider than the hit radius so near-misses grade above 0. |
+| `papiLateralRange` | Half-width of Papi's dodge corridor. Lower = tighter corridor. |
+| `telegraphDuration` | Monster wind-up before each throw — the cue the player reacts to. Higher = easier reads. |
+| `dodgeBonusBase` | Base points per dodged snowball, before severity scaling. |
+| `volleyCompletionBonus` | Flat bonus for surviving the full volley (replaces the paused survival drip). |
+| `introDuration / outroDuration` | Transition lengths into / out of the rear-view scene. |
+| `postEncounterGrace` | Quiet seconds after returning before icicle spawns resume. |
+
 ### `Tuning.Run`: round-level pacing
 
 | Knob | Effect |

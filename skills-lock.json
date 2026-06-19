@@ -36,6 +36,36 @@
       "sourceType": "github",
       "skillPath": "sound-effects/SKILL.md",
       "computedHash": "54ec05122413cbc956b28fbd81c676e44eb0fdbbf6459ee3b367b2c7a1350b02"
+    },
+    "spritecook-animate-assets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-animate-assets/SKILL.md",
+      "computedHash": "71888785caf49019f70bb78b187256154392357dbf8ce8ad0332dd5b456baae5"
+    },
+    "spritecook-generate-sprites": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-generate-sprites/SKILL.md",
+      "computedHash": "53d5ffb20204bfa86e2daf1477af72132fe28902aa1de7d3cb1f07865d757205"
+    },
+    "spritecook-generate-tilesets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-generate-tilesets/SKILL.md",
+      "computedHash": "2b8c2f1f9c3fc3553123b4ab843cabfec3ff6fcef32a4629fab9f83ef1506f86"
+    },
+    "spritecook-use-dual-grid-tilesets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-use-dual-grid-tilesets/SKILL.md",
+      "computedHash": "12cf641ab69b4486c6d4765b37a2ce866ad17263e7a3d4393ca886d9a47876e1"
+    },
+    "spritecook-workflow-essentials": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-workflow-essentials/SKILL.md",
+      "computedHash": "ab8aad7deb03bd7a5437c6da339ee17b659fc9bd912058534262316b968dae5b"
     }
   }
 }

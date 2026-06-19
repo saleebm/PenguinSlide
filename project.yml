@@ -31,6 +31,22 @@ targets:
         ENABLE_PREVIEWS: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
+  PenguinSlideTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PenguinSlideTests
+    dependencies:
+      # xcodegen derives TEST_HOST/BUNDLE_LOADER from this app-target
+      # dependency, so `@testable import PenguinSlide` resolves against
+      # the host app.
+      - target: PenguinSlide
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.copt.PenguinSlideTests
+        GENERATE_INFOPLIST_FILE: YES
+
   PenguinSlideUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -50,8 +66,10 @@ schemes:
     build:
       targets:
         PenguinSlide: all
+        PenguinSlideTests: [test]
         PenguinSlideUITests: [test]
     test:
       targets:
+        - PenguinSlideTests
         - PenguinSlideUITests
       gatherCoverageData: false
