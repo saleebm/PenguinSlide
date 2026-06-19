@@ -50,7 +50,7 @@
 //  ## Score-bracket gate (gyu.17 amendment)
 //
 //  On top of the time-domain gates, the random cadence may fire AT MOST
-//  ONCE per `Tuning.Encounter.triggerScoreBracket` (1000) score points:
+//  ONCE per `Tuning.Encounter.triggerScoreBracket` (250) score points:
 //  bracket = floor(score / scoreBracket); a fire consumes its bracket
 //  until `reset()`. GameScene passes the live score into `update`. The
 //  manual settings-button entry (gyu.30) and the debugForceEncounter

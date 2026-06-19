@@ -94,7 +94,8 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | `minRunTime` | Run seconds before the first encounter can roll. Lower = monster shows up sooner. |
 | `minSpacing` | Minimum seconds between encounters. Lower = back-to-back pressure possible. |
 | `perSecondChance` | Probability rolled per eligible second that an encounter fires. Higher = more frequent. |
-| `maxPerRun` | Hard cap on encounters per run. |
+| `maxPerRun` | Hard cap on encounters per run (`.max` = uncapped, so `triggerScoreBracket` is the only per-run limiter). |
+| `triggerScoreBracket` | Score-bracket rate limit: at most one random encounter per this many points (250 = a fresh chance roughly every 250 points). Manual/debug entries bypass it. |
 | `volleyCountStart / End` | Snowballs per encounter at early vs. peak run progress (lerped at trigger time). |
 | `throwIntervalStart / End` | Seconds between throws at early vs. peak run progress. Lower = denser volley. |
 | `zSpeedStart / End` | Snowball depth speed (units/s toward camera) at early vs. peak. Higher = shorter reaction window. |

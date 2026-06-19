@@ -159,16 +159,21 @@ enum Tuning {
         /// fires. Raise to make encounters more frequent (0.04 ≈ expected
         /// fire within ~25 eligible seconds); lower to make them rarer.
         static let perSecondChance: Double = 0.04
-        /// Hard cap on encounters per run. Raise for more monster time in
-        /// long runs; lower (to 1) for a once-per-run set piece.
-        static let maxPerRun: Int = 2
+        /// Hard cap on encounters per run. `Int.max` disables the cap so the
+        /// score-bracket gate (`triggerScoreBracket`) is the only per-run
+        /// limiter — a fresh random chance every bracket for the whole run.
+        /// Lower (to 1) for a once-per-run set piece.
+        static let maxPerRun: Int = .max
         /// Score-bracket rate limit (gyu.17 amendment): the random cadence
         /// may fire AT MOST ONCE per this many score points — bracket =
         /// floor(score / triggerScoreBracket), and a fire consumes the
-        /// bracket until restart. Raise to space random encounters further
-        /// apart on the score axis; the manual settings-button entry and
-        /// the debugForceEncounter hook bypass this gate entirely.
-        static let triggerScoreBracket: Int = 1000
+        /// bracket until restart. At 250 (with `maxPerRun` uncapped) the
+        /// monster is a recurring random chance roughly every 250 points
+        /// rather than a one-off set piece. Raise to space random
+        /// encounters further apart on the score axis; the manual
+        /// settings-button entry and the debugForceEncounter hook bypass
+        /// this gate entirely.
+        static let triggerScoreBracket: Int = 250
         /// Lateral danger window (pt) around the penguin: while any FALLING
         /// icicle's x is within this distance, the random trigger is
         /// ineligible — the intro sweep clears all icicles, so firing with
