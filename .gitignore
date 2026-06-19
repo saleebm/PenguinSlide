@@ -84,3 +84,7 @@ test-evidence/
 .env.local
 
 .mcp.json
+
+# Raw asset masters staged before import into Assets.xcassets / PenguinSlide/Sounds.
+# Per-machine source-of-truth, not a build input — kept local, out of VCS.
+assets-staging/

@@ -57,63 +57,6 @@
 
 import SpriteKit
 
-// MARK: - Forward-slide knobs
-//
-// These belong in Tuning.Encounter's Geometry/Feel groups; they live here as
-// an extension only because Tuning.swift was reserved by another agent when
-// gyu.10 landed. Call sites read `Tuning.Encounter.*` either way — fold the
-// bodies into Tuning.swift whenever it's convenient.
-extension Tuning.Encounter {
-    /// Pace-1.0 base for `groundScrollSpeed` (see `paceScale`,
-    /// penguinslide-fr7). Edit this only to change the forward-slide
-    /// read relative to ball speed; edit `paceScale` for overall pace.
-    static let baseGroundScrollSpeed: CGFloat = 240
-    /// Ground scroll speed (virtual depth units/s toward the camera).
-    /// Raise for a faster forward-slide read; keep below `zSpeedStart`
-    /// so snowballs always visibly outpace the ground (both scale by
-    /// the same `paceScale`, so the base relation is preserved —
-    /// `EncounterPaceTests` asserts it). Derived: base × `paceScale`
-    /// (= 312 at pace 1.3).
-    static let groundScrollSpeed: CGFloat = baseGroundScrollSpeed * Tuning.Encounter.paceScale
-    /// Number of recycled ground depth-bands. More bands = denser cadence
-    /// (and more per-frame projections); fewer reads choppier. Raised 8 → 12
-    /// for penguinslide-hhz: at 8 the inter-band gaps near the camera —
-    /// where the projection derivative is largest — strobed visibly on
-    /// device. Pooled once at init, so the only recurring cost is 12 trivial
-    /// projections per frame.
-    static let groundBandCount: Int = 12
-    /// Fraction of the band span over which a freshly wrapped band fades IN
-    /// at the far (horizon) end, hiding the z-wrap teleport.
-    static let groundBandFarFadeFraction: CGFloat = 0.15
-    /// Fraction of the band span over which a band fades OUT approaching the
-    /// camera plane (z → 0), mirroring the far fade-in so the wrap is
-    /// invisible at BOTH ends (penguinslide-hhz near-plane pop fix). The
-    /// fade also softens exactly the region where per-frame screen-space
-    /// steps are biggest, masking near-plane jitter. At groundScrollSpeed
-    /// 312 (pace 1.3) and zSpan 1350 this is ~26 frames of fade
-    /// (~0.04 alpha/frame at 60 fps).
-    static let groundBandNearFadeFraction: CGFloat = 0.10
-    /// Band thickness in points at the camera plane (scales with depth).
-    static let groundBandThickness: CGFloat = 26
-    /// Depth span of the band field as a multiple of `zMonster`, so bands
-    /// recycle behind the monster's station rather than popping at it.
-    static let groundSpanFactor: CGFloat = 1.5
-    /// Snow speed-line particle count (pooled once).
-    static let speedLineCount: Int = 14
-    /// Speed-line z-speed as a multiple of `groundScrollSpeed` — the
-    /// relative-wind cue. 1.0 would pin flakes to the ground.
-    static let speedLineSpeedFactor: CGFloat = 1.6
-    /// Vertical fraction (measured from the art's BOTTOM edge) of the
-    /// mountain backdrop's internal horizon row — where the painted valley
-    /// floor meets the distant range at the vanishing point (~row 131 of
-    /// 238 from the top in the shipped 426x238 SpriteCook vista). The
-    /// backdrop anchors here so its in-art horizon sits EXACTLY on
-    /// `DepthProjector.horizonY`: geometry truth stays with the projector
-    /// (`horizonYFraction`), and this knob is how the ART placement bends
-    /// to it (gyu.25). Re-measure if the backdrop art is regenerated.
-    static let backdropHorizonInArtFraction: CGFloat = 0.45
-}
-
 // MARK: - Pure band-field math (unit-tested in EncounterWorldTests)
 
 /// The recyclable set of depth stations behind the band sprites. Pure value
@@ -328,7 +271,11 @@ final class EncounterWorld {
         // projection (x and y are both linear in t), so two static segments
         // from the corridor edges at z = 0 toward a deep z suffice.
         let path = CGMutablePath()
-        let zDeep = Tuning.Encounter.zMonster * 6   // visually at the VP
+        // Push the lane lines well past the monster so they read as converging
+        // on the vanishing point — at this depth the projector has shrunk them
+        // to within a couple px of vanishingX, which looks like the VP.
+        let vanishingPointDepthFactor: CGFloat = 6
+        let zDeep = Tuning.Encounter.zMonster * vanishingPointDepthFactor
         for worldX in [projector.vanishingX - Tuning.Encounter.papiLateralRange,
                        projector.vanishingX + Tuning.Encounter.papiLateralRange] {
             let near = projector.project(worldX: worldX, z: 0).point

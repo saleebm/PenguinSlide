@@ -24,15 +24,15 @@ You're picking up **PenguinSlide** (tilt-controlled iOS game, SpriteKit + SwiftU
 
 ## ⚠️ Hygiene matters to take care of (deferred — NOT done in the merge, per the user's "leave hygiene alone" call)
 
-These were surfaced during review and intentionally left for a follow-up pass. None block runtime; all are repo-cleanliness / convention debt.
+Surfaced during review. Items 1–4 and 7 were cleaned up on branch `chore/snow-monster-hygiene` (commits `b325ee3`, `b7c96a1`); 5 and 6 remain as noted below.
 
-1. **[HIGH] `.beads/.br_recovery/*.bak` committed** — a 630 KB binary SQLite db backup + a wal backup were force-added (commit `733dd1a`). `.beads/.gitignore` already ignores `*.db`/`*.db-wal`, so these per-machine recovery backups don't belong in VCS. **Fix:** `git rm --cached .beads/.br_recovery/*.bak` and add `.br_recovery/` to `.beads/.gitignore`.
-2. **[MEDIUM] `assets-staging/` (~23 raw .mp3/.png, ~600 KB)** — source masters staged before import into `Assets.xcassets`/`PenguinSlide/Sounds/`; unreferenced by `project.yml` or any build path. **Decide:** keep deliberately (add `assets-staging/README.md` stating it's source-of-truth masters) **or** gitignore it. Don't leave ambiguous.
-3. **[MEDIUM] `Tuning.Encounter` knobs scattered across encounter files** — defined in `extension` blocks in `Snowball.swift`, `EncounterWorld.swift`, `PapiAvatar.swift` (each notes "fold into Tuning.swift whenever convenient") instead of the `Tuning.swift` difficulty hub. Consolidate per the documented "Tuning.swift is the difficulty hub" convention.
-4. **[LOW] `test-unit.sh` uses `-scheme`** while every other script uses target-mode (`-target`+`-sdk`) per the Xcode-26 quirk in `CLAUDE.md`. It ran green, but add a one-line comment explaining why `xcodebuild test` runs use scheme mode.
-5. **[LOW] Terse branch history** — `feat/snow-monster` commits are `wip`/`config`/`papi pengu`/`encounter`. Merged with `--no-ff` so the merge commit documents intent; if you prefer a clean linear history, consider squashing before any future similar merge.
-6. **[LOW] Version bump** — `Info.plist` `CFBundleShortVersionString` 1.3.0 → 1.4.0 but `CFBundleVersion` stayed `1`. Confirm the build-number handling (`scripts/bump-version.sh build`) before a release archive.
-7. **[NIT] Magic numbers** — `SnowMonsterEncounterSystem` hard-codes `zPosition = 69` (dodge-exit node) in the reserved HUD/FX z-band, and `EncounterWorld` uses `zDeep = zMonster * 6` inline. Promote to named constants in the documented z-stack.
+1. ✅ **[HIGH] `.beads/.br_recovery/*.bak`** — DONE (`b325ee3`): untracked via `git rm --cached`, `.br_recovery/` added to `.beads/.gitignore`. Local copies kept.
+2. ✅ **[MEDIUM] `assets-staging/`** — DONE (`b325ee3`): untracked + `assets-staging/` gitignored (per the user's call). Local masters kept, out of VCS.
+3. ✅ **[MEDIUM] `Tuning.Encounter` knobs scattered** — DONE (`b7c96a1`): all four `extension Tuning.Encounter` blocks folded into `enum Encounter` in `Tuning.swift`, grouped under new MARK subsections. Pure move (identical values); 204/204 green.
+4. ✅ **[LOW] `test-unit.sh` uses `-scheme`** — DONE (`b325ee3`): added a comment explaining why `xcodebuild test` needs scheme mode (TEST_HOST resolution) while build scripts use target mode.
+5. **[LOW] Terse branch history** — `feat/snow-monster` commits were `wip`/`config`/`papi pengu`/`encounter`. Merged with `--no-ff` so the merge commit documents intent. Informational; nothing to do unless you want history rewritten.
+6. **[LOW] Version bump (OPEN)** — `Info.plist` `CFBundleShortVersionString` is 1.3.0 → 1.4.0 but `CFBundleVersion` stayed `1`. Confirm build-number handling (`scripts/bump-version.sh build`) before a release archive. Left for release time — needs your intent.
+7. ✅ **[NIT] Magic numbers** — DONE (`b325ee3`): `SnowMonsterEncounterSystem.dodgeExitZPosition` (= 69) and `EncounterWorld`'s `vanishingPointDepthFactor` (= 6) are now named constants. Value-identical.
 
 ## Resolved since the last handoff
 - The dangling `Info.plist` display-name rebrand ("Penguin Slide" → "Icy Penguin Slide") is committed on `main` (`7427e23`, plus `f752358` fix hardcoded paths). No longer outstanding.

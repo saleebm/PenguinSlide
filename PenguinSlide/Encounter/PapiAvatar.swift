@@ -57,17 +57,6 @@
 
 import SpriteKit
 
-// Avatar-footprint knob — belongs in Tuning.Encounter's Geometry group;
-// lives here as an extension following the EncounterWorld precedent
-// (fold into Tuning.swift whenever convenient).
-extension Tuning.Encounter {
-    /// Papi sprite footprint (pt) at the camera plane, where the
-    /// projector scale is exactly 1.0 — so this IS the on-screen size.
-    /// Comparable to the interim placeholder (scene height × 0.22 on an
-    /// iPhone). Raise to bulk Papi up; lower for a smaller silhouette.
-    static let papiBaseSize: CGFloat = 180
-}
-
 final class PapiAvatar {
 
     /// Playback rate for the rear-slide loop — matches the 8 fps

@@ -54,52 +54,6 @@
 import SpriteKit
 import UIKit
 
-// FX knobs — Tuning.Encounter's Feel group; living here as an extension
-// per the EncounterWorld/PapiAvatar precedent (fold into Tuning.swift
-// whenever convenient).
-extension Tuning.Encounter {
-    /// Powder-puff core footprint (pt) at avatar depth scale 1.0 — the
-    /// soft white pop under the chunk burst. It should swallow the
-    /// ~64 pt ball without covering the whole 180 pt avatar. Raise for
-    /// a beefier impact read; lower for a subtler one.
-    static let impactPuffBaseSize: CGFloat = 96
-    /// Puff one-shot lifetime (s): swells to ~1.25× while fading out.
-    static let impactPuffDuration: TimeInterval = 0.32
-    /// Snow chunks launched by an accepted hit (HP lost); the i-frame
-    /// absorbed branch spawns the smaller count. Per-hit node creation
-    /// only — never per-frame.
-    static let impactChunkCount: Int = 10
-    static let impactChunkCountAbsorbed: Int = 6
-    /// Chunk radial launch speed range (pt/s at depth scale 1.0).
-    static let impactChunkSpeedMin: CGFloat = 150
-    static let impactChunkSpeedMax: CGFloat = 330
-    /// Manual gravity on chunks (pt/s² at depth scale 1.0) — the
-    /// integrate-it-yourself doctrine shared with IcicleSystem's shards.
-    static let impactChunkGravity: CGFloat = 1050
-    /// Chunk lifetime (s); alpha ramps to 0 across it, then the node is
-    /// removed by the integration tick.
-    static let impactChunkLifetime: TimeInterval = 0.6
-    /// Chunk sprite size range (pt at depth scale 1.0).
-    static let impactChunkSizeMin: CGFloat = 7
-    static let impactChunkSizeMax: CGFloat = 15
-    /// Softer-pop multiplier for i-frame-absorbed hits — scales chunk
-    /// count/speed and puff size/alpha, mirroring onIcicleHitPenguin's
-    /// accepted == false branch. Raise toward 1 to make absorbed hits
-    /// read as loud as real ones. (Named distinctly from the AUDIO
-    /// `impactAbsorbedScale`, which ducks the impact sample's volume.)
-    static let impactFXSoftenScale: CGFloat = 0.65
-    /// Minimum dodge severity (∈ [0, 1]) that earns the light haptic
-    /// tick. Raise so only hair's-breadth shaves buzz; lower for more
-    /// generous physical feedback (1.0 silences dodge haptics).
-    static let dodgeHapticSeverity: CGFloat = 0.5
-    /// Speed-line whoosh accent: lines per dodge at severity 1 (lerps
-    /// down to 1 line at severity 0). Per-dodge node creation only —
-    /// never per-frame.
-    static let dodgeAccentLineCountMax: Int = 4
-    /// Lifetime (s) of one speed-line accent before it self-removes.
-    static let dodgeAccentDuration: TimeInterval = 0.28
-}
-
 final class EncounterFX {
 
     /// Burst draw-order slot: JUST in front of the avatar (whose
