@@ -176,8 +176,11 @@ final class SnowMonsterEncounterSystem {
         let count: Int
         /// Recovery gap (s) between a release and the next telegraph.
         let throwInterval: TimeInterval
-        /// Depth speed (pt/s toward the camera) for every ball thrown.
+        /// LAUNCH depth speed (pt/s toward the camera) for every ball
+        /// thrown; balls then accelerate by `zAccel` in flight.
         let zSpeed: CGFloat
+        /// Constant in-flight depth acceleration (pt/s², penguinslide-sct).
+        let zAccel: CGFloat
     }
 
     /// Lerp the `Tuning.Encounter` volley knobs by difficulty progress:
@@ -192,13 +195,15 @@ final class SnowMonsterEncounterSystem {
                            intervalStart: TimeInterval = Tuning.Encounter.throwIntervalStart,
                            intervalEnd: TimeInterval = Tuning.Encounter.throwIntervalEnd,
                            zSpeedStart: CGFloat = Tuning.Encounter.zSpeedStart,
-                           zSpeedEnd: CGFloat = Tuning.Encounter.zSpeedEnd) -> VolleyPlan {
+                           zSpeedEnd: CGFloat = Tuning.Encounter.zSpeedEnd,
+                           zAccel: CGFloat = Tuning.Encounter.zAccel) -> VolleyPlan {
         let p = min(1.0, max(0.0, difficultyProgress))
         let count = Int((Double(countStart)
             + (Double(countEnd) - Double(countStart)) * p).rounded())
         let interval = intervalStart + (intervalEnd - intervalStart) * p
         let zSpeed = zSpeedStart + (zSpeedEnd - zSpeedStart) * CGFloat(p)
-        return VolleyPlan(count: count, throwInterval: interval, zSpeed: zSpeed)
+        return VolleyPlan(count: count, throwInterval: interval,
+                          zSpeed: zSpeed, zAccel: zAccel)
     }
 
     #if DEBUG
@@ -220,16 +225,21 @@ final class SnowMonsterEncounterSystem {
     /// guaranteed win, large e.g. 400 = everything connects → guaranteed
     /// loss). Unrecognized/garbage tokens are skipped; every key is
     /// optional and un-overridden knobs keep their Tuning-lerped values.
-    /// DEBUG-only: Release builds compile none of this.
+    /// `accel` (depth pt/s², penguinslide-sct) overrides the in-flight
+    /// acceleration — 0 gives constant-speed balls for timing-exact
+    /// tests. DEBUG-only: Release builds compile none of this.
     struct TestVolleyOverrides: Equatable {
-        var count: Int?
-        var throwInterval: TimeInterval?
-        var zSpeed: CGFloat?
-        var lateralHitRadius: CGFloat?
+        // `= nil` defaults keep the memberwise init source-compatible
+        // as override keys are added (call sites name only what they set).
+        var count: Int? = nil
+        var throwInterval: TimeInterval? = nil
+        var zSpeed: CGFloat? = nil
+        var zAccel: CGFloat? = nil
+        var lateralHitRadius: CGFloat? = nil
 
         var isEmpty: Bool {
             count == nil && throwInterval == nil
-                && zSpeed == nil && lateralHitRadius == nil
+                && zSpeed == nil && zAccel == nil && lateralHitRadius == nil
         }
 
         /// The launch flag; its VALUE is the next argument.
@@ -256,6 +266,7 @@ final class SnowMonsterEncounterSystem {
                 case "count":     overrides.count = Int(value)
                 case "interval":  overrides.throwInterval = TimeInterval(value)
                 case "zSpeed":    overrides.zSpeed = Double(value).map { CGFloat($0) }
+                case "accel":     overrides.zAccel = Double(value).map { CGFloat($0) }
                 case "hitRadius": overrides.lateralHitRadius = Double(value).map { CGFloat($0) }
                 default:          break
                 }
@@ -268,7 +279,8 @@ final class SnowMonsterEncounterSystem {
         func applied(to plan: VolleyPlan) -> VolleyPlan {
             VolleyPlan(count: count ?? plan.count,
                        throwInterval: throwInterval ?? plan.throwInterval,
-                       zSpeed: zSpeed ?? plan.zSpeed)
+                       zSpeed: zSpeed ?? plan.zSpeed,
+                       zAccel: zAccel ?? plan.zAccel)
         }
     }
 
@@ -569,6 +581,7 @@ final class SnowMonsterEncounterSystem {
     func spawnSnowball(targetWorldX: CGFloat,
                        targetVx: CGFloat,
                        zSpeed: CGFloat,
+                       zAccel: CGFloat = Tuning.Encounter.zAccel,
                        driftVx driftOverride: CGFloat? = nil,
                        using rng: inout any RandomNumberGenerator) -> Snowball? {
         guard let parent, let projector else { return nil }
@@ -579,7 +592,12 @@ final class SnowMonsterEncounterSystem {
         let worldX = snowballAimWorldX(
             targetWorldX: targetWorldX,
             targetVx: targetVx,
-            flightTime: TimeInterval(spawnZ / max(zSpeed, 1)),
+            // EXACT accelerated flight time (penguinslide-sct) — the lead
+            // prediction must not assume constant speed or the aim goes
+            // stale the moment the ball starts rushing.
+            flightTime: snowballFlightTime(spawnZ: spawnZ,
+                                           zSpeed: zSpeed,
+                                           zAccel: zAccel),
             leadFactor: Tuning.Encounter.snowballLeadFactor,
             jitter: jitter,
             corridorCenter: projector.vanishingX,
@@ -618,6 +636,7 @@ final class SnowMonsterEncounterSystem {
                             worldX: worldX,
                             driftVx: driftVx,
                             zSpeed: zSpeed,
+                            zAccel: zAccel,
                             spinSpeed: spin,
                             spawnZ: spawnZ)
         // Seat the visuals immediately so the ball appears at the
@@ -634,11 +653,13 @@ final class SnowMonsterEncounterSystem {
     @discardableResult
     func spawnSnowball(targetWorldX: CGFloat,
                        targetVx: CGFloat,
-                       zSpeed: CGFloat) -> Snowball? {
+                       zSpeed: CGFloat,
+                       zAccel: CGFloat = Tuning.Encounter.zAccel) -> Snowball? {
         var rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
         return spawnSnowball(targetWorldX: targetWorldX,
                              targetVx: targetVx,
                              zSpeed: zSpeed,
+                             zAccel: zAccel,
                              using: &rng)
     }
 
@@ -736,6 +757,7 @@ final class SnowMonsterEncounterSystem {
         spawnSnowball(targetWorldX: targetX,
                       targetVx: targetVx,
                       zSpeed: plan.zSpeed,
+                      zAccel: plan.zAccel,
                       using: &volleyRNG)
         // Throw whoosh ON the release signal (gyu.27) — the same beat
         // the ball leaves the monster's hand, watchdog-forced releases
@@ -835,10 +857,23 @@ final class SnowMonsterEncounterSystem {
                 return nil
             }
 
-            // Manual depth + drift integration. The drift clamp matches
-            // the aim clamp so a curving ball can never leave the
-            // dodgeable corridor mid-flight.
+            // Manual depth + drift integration. Semi-implicit Euler for
+            // the acceleration (penguinslide-sct): speed first, then
+            // position from the NEW speed — matching the closed-form
+            // snowballFlightTime within a frame (SnowballSystemTests
+            // pins the agreement). The drift clamp matches the aim
+            // clamp so a curving ball can never leave the dodgeable
+            // corridor mid-flight; the hit sweep below is segment-based
+            // (min(z, previousZ)), so the growing per-frame step can
+            // never tunnel through the depth window.
             let previousZ = ball.z
+            // Floored at the closed form's clamp (snowballFlightTime's
+            // max(v0, 1)) so a mis-tuned deceleration or negative DEBUG
+            // `accel=` override degrades to a forward crawl that still
+            // arrives and resolves — never a backward flight that
+            // strands `outstandingBalls` and soft-locks the volley
+            // (penguinslide-gyu.34).
+            ball.zSpeed = max(ball.zSpeed + ball.zAccel * dtF, 1)
             ball.z -= ball.zSpeed * dtF
             ball.worldX = min(corridorMax, max(corridorMin, ball.worldX + ball.driftVx * dtF))
 
@@ -869,7 +904,10 @@ final class SnowMonsterEncounterSystem {
                     playDodgeAudio(severity: severity)
                     onDodge?(severity,
                              screenPoint(for: ball, projector: projector))
-                    retire(ball: ball, node: node)
+                    // A dodged ball must not blink out at the camera
+                    // plane — it slides under the window (exit beat)
+                    // while the accounting retires it now.
+                    retireWithExit(ball: ball, node: node, projector: projector)
                     return nil
                 }
             }
@@ -896,6 +934,54 @@ final class SnowMonsterEncounterSystem {
         node.removeFromParent()
         ball.shadow?.removeFromParent()
         outstandingBalls -= 1
+    }
+
+    /// Nodes riding their exit one-shot after dodge retirement —
+    /// accounting-wise these balls are GONE (retired above); the array
+    /// exists only so `setActionsPaused` can freeze a mid-exit ball on
+    /// game over and `reset()` can scrub it. Self-cleaning: detached
+    /// nodes are swept whenever a new exit starts.
+    private(set) var exitingBalls: [SKNode] = []
+
+    /// Dodge retirement with the under-the-window exit beat
+    /// (penguinslide-sct follow-up): accounting retires NOW (the volley
+    /// completion signal must not wait on FX), the shadow fades fast
+    /// (the ball is leaving the ground plane's influence), and the node
+    /// continues screen-space — outward from the vanishing point, down
+    /// past the bottom edge, swelling like a passing object — sizzling
+    /// out (fade) over the tail of the slide before removing itself.
+    private func retireWithExit(ball: Snowball, node: SKSpriteNode,
+                                projector: DepthProjector) {
+        outstandingBalls -= 1
+        if let shadow = ball.shadow {
+            shadow.run(.sequence([.fadeOut(withDuration: 0.12),
+                                  .removeFromParent()]))
+            exitingBalls.append(shadow)
+        }
+
+        let dur = Tuning.Encounter.dodgeExitDuration
+        let drop = node.position.y + node.size.height
+            * Tuning.Encounter.dodgeExitScale / 2
+            + Tuning.Encounter.dodgeExitDropExtra
+        let lateral = (node.position.x - projector.vanishingX)
+            * Tuning.Encounter.dodgeExitLateralFactor
+        // Draw over every depth band on the way out: the ball is now
+        // nearer than anything in the scene (EncounterWorld's reserved
+        // z-stack tops out below this).
+        node.zPosition = 69
+        node.run(.group([
+            .moveBy(x: lateral, y: -drop, duration: dur),
+            .scale(by: Tuning.Encounter.dodgeExitScale, duration: dur),
+            .rotate(byAngle: ball.spinSpeed * CGFloat(dur), duration: dur),
+            // Sizzle: hold full presence for the first stretch, then
+            // fade through the last — reads as passing under, not
+            // dissolving in place.
+            .sequence([.wait(forDuration: dur * 0.45),
+                       .fadeOut(withDuration: dur * 0.55)]),
+        ]))
+        node.run(.sequence([.wait(forDuration: dur), .removeFromParent()]))
+        exitingBalls.removeAll { $0.parent == nil }
+        exitingBalls.append(node)
     }
 
     /// Projected screen position of a ball's CURRENT flight state — the
@@ -965,6 +1051,9 @@ final class SnowMonsterEncounterSystem {
             ball.node?.isPaused = paused
             ball.shadow?.isPaused = paused
         }
+        // Mid-exit dodged balls freeze too — a death the instant after
+        // a dodge must not leave one ball sliding over the frozen frame.
+        for node in exitingBalls { node.isPaused = paused }
     }
 
     /// Clears volley/world state so a restart after an encounter death
@@ -987,6 +1076,8 @@ final class SnowMonsterEncounterSystem {
             ball.shadow?.removeFromParent()
         }
         snowballs.removeAll(keepingCapacity: true)
+        for node in exitingBalls { node.removeFromParent() }
+        exitingBalls.removeAll(keepingCapacity: true)
         // A reset abandons the volley wholesale — outstanding accounting
         // re-arms at zero (not decremented per ball: these balls were
         // never resolved, and the completion check must not see ghosts

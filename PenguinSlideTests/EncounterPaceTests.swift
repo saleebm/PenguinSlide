@@ -82,6 +82,10 @@ final class EncounterPaceTests: XCTestCase {
                        Tuning.Encounter.baseTelegraphDuration / TimeInterval(pace),
                        accuracy: 1e-9,
                        "telegraphDuration must be base / paceScale")
+        XCTAssertEqual(Tuning.Encounter.zAccel,
+                       Tuning.Encounter.baseZAccel * pace * pace,
+                       accuracy: 1e-9,
+                       "zAccel must be base x paceScale^2 — acceleration is distance/time^2, so time compression scales it quadratically (penguinslide-sct)")
     }
 
     func testGroundScrollNeverOutpacesSnowballs() {
@@ -119,8 +123,11 @@ final class EncounterPaceTests: XCTestCase {
         // monster->plane depth. The dodge clock starts at the THROW,
         // not at telegraph start — the telegraph head start is real
         // reaction budget on device, withheld here as extra margin.
-        let flightTime = TimeInterval(Tuning.Encounter.zMonster
-                                      / Tuning.Encounter.zSpeedEnd)
+        // Worst case is the ACCELERATED fastest ball (penguinslide-sct):
+        // the exact closed-form arrival time, not zMonster / zSpeedEnd.
+        let flightTime = snowballFlightTime(spawnZ: Tuning.Encounter.zMonster,
+                                            zSpeed: Tuning.Encounter.zSpeedEnd,
+                                            zAccel: Tuning.Encounter.zAccel)
         let required = worstCaseClearance(flightTime: flightTime)
 
         // The exact integrator + corridor PapiAvatar uses (worldX space:
@@ -150,8 +157,11 @@ final class EncounterPaceTests: XCTestCase {
         // The wall must never be what makes a dodge impossible: the
         // corridor (minus the avatar's clamp inset) needs to hold the
         // full worst-case clearance from a center start.
-        let flightTime = TimeInterval(Tuning.Encounter.zMonster
-                                      / Tuning.Encounter.zSpeedEnd)
+        // Worst case is the ACCELERATED fastest ball (penguinslide-sct):
+        // the exact closed-form arrival time, not zMonster / zSpeedEnd.
+        let flightTime = snowballFlightTime(spawnZ: Tuning.Encounter.zMonster,
+                                            zSpeed: Tuning.Encounter.zSpeedEnd,
+                                            zAccel: Tuning.Encounter.zAccel)
         let required = worstCaseClearance(flightTime: flightTime)
         let usable = Tuning.Encounter.papiLateralRange
             - Tuning.Encounter.papiBaseSize * PapiAvatar.halfWidthFraction

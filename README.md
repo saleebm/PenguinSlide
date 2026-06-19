@@ -90,6 +90,7 @@ Open `Tuning.swift`. Constants are grouped into nested namespaces by subsystem.
 | Knob | Effect |
 |---|---|
 | `paceScale` | **Master pace multiplier** — scales `zSpeedStart/End` + `groundScrollSpeed` up and `throwIntervalStart/End` + `telegraphDuration` down together. One number = whole-encounter intensity (1.0 = original feel; 1.3 ships ≈30% faster). Dodgeability at the current pace is enforced by `EncounterPaceTests`. |
+| `baseZAccel` | In-flight snowball **acceleration** (pt/s² at pace 1.0; live value scales by `paceScale`²). Balls launch at `zSpeed` — keeping the telegraph reaction window — then rush as they approach. `0` restores constant-speed flight. Aim lead and the dodgeability tests use the exact accelerated flight time (`snowballFlightTime`). |
 | `minRunTime` | Run seconds before the first encounter can roll. Lower = monster shows up sooner. |
 | `minSpacing` | Minimum seconds between encounters. Lower = back-to-back pressure possible. |
 | `perSecondChance` | Probability rolled per eligible second that an encounter fires. Higher = more frequent. |

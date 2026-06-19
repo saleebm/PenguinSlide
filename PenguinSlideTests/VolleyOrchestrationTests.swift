@@ -113,7 +113,8 @@ final class VolleyOrchestrationTests: XCTestCase {
                                                           zSpeedStart: 100, zSpeedEnd: 300)
         XCTAssertEqual(swept, SnowMonsterEncounterSystem.VolleyPlan(count: 7,
                                                                     throwInterval: 1.5,
-                                                                    zSpeed: 200))
+                                                                    zSpeed: 200,
+                                                                    zAccel: Tuning.Encounter.zAccel))
     }
 
     func testPlanProgressClampsOutsideUnitRange() {

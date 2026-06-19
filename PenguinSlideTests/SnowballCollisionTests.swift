@@ -143,7 +143,7 @@ final class SnowballCollisionTests: XCTestCase {
 
     func testDodgeSeverityProportionalToClosenessAtCrossing() {
         let papi: CGFloat = 195
-        // A 60 pt near-miss at the shipped severityRadius (150).
+        // A 60 pt near-miss against the shipped (derived) severityRadius.
         let near = SnowMonsterEncounterSystem.resolve(
             previousZ: 3, z: -1, ballWorldX: papi + 60, papiWorldX: papi)
         XCTAssertEqual(near, .dodged(severity: 1 - 60 / sevRadius),
@@ -192,6 +192,20 @@ final class SnowballCollisionTests: XCTestCase {
         // treatment goes dead. Pin the knob relationship.
         XCTAssertGreaterThan(sevRadius, hitRadius,
                              "severityRadius must exceed lateralHitRadius or all dodge severities collapse to 0")
+    }
+
+    func testClosestDodgeSeverityClearsTheFxGates() {
+        // penguinslide-gyu.31: severityRadius is DERIVED (4× hitRadius)
+        // so the closest legal dodge always scores 0.75 — growing the
+        // hitbox can never again silently cap severity below the dodge
+        // haptic / flyby gates and deaden the close-call treatment.
+        let ceiling = SnowMonsterEncounterSystem.dodgeSeverity(lateralMiss: hitRadius)
+        XCTAssertEqual(ceiling, 0.75, accuracy: 1e-9,
+                       "severityRadius = 4 × lateralHitRadius pins the dodge ceiling at 0.75")
+        XCTAssertGreaterThan(ceiling, Tuning.Encounter.flybySeverityMin,
+                             "the flyby audio layer must be reachable by the closest dodges")
+        XCTAssertGreaterThan(ceiling, Tuning.Encounter.dodgeHapticSeverity,
+                             "the dodge haptic must be reachable by the closest dodges")
     }
 
     // MARK: - Pure: frame-stepped simulations
@@ -381,7 +395,11 @@ final class SnowballCollisionTests: XCTestCase {
         guard let ball = spawn(system, target: projector.vanishingX) else {
             return XCTFail("spawn failed after configure")
         }
-        let papiX = ball.worldX + 80   // clear of hitRadius, inside sevRadius
+        // Clear of the hit boundary by a real margin (the old literal 80
+        // sat 0.2 pt outside the derived ~79.8 radius), well inside
+        // sevRadius so the severity pin below stays meaningful.
+        let miss = hitRadius + 40
+        let papiX = ball.worldX + miss
         system.papiWorldXProvider = { papiX }
         var hits = 0
         var dodges: [(severity: CGFloat, point: CGPoint)] = []
@@ -394,12 +412,12 @@ final class SnowballCollisionTests: XCTestCase {
             frames += 1
         }
 
-        XCTAssertEqual(hits, 0, "an 80 pt miss must never connect")
+        XCTAssertEqual(hits, 0, "a miss outside the hit radius must never connect")
         XCTAssertEqual(dodges.count, 1,
                        "the crossing must resolve .dodged exactly once (got \(dodges.count))")
-        XCTAssertEqual(dodges.first?.severity ?? .nan, 1 - 80 / sevRadius,
+        XCTAssertEqual(dodges.first?.severity ?? .nan, 1 - miss / sevRadius,
                        accuracy: 1e-6,
-                       "severity must be the normalized closeness AT the crossing (miss 80, radius \(sevRadius))")
+                       "severity must be the normalized closeness AT the crossing (miss \(miss), radius \(sevRadius))")
         // The reported screen point is the camera-plane projection: at
         // z ≤ 0 the projector clamps to the identity plane, so x is the
         // ball's worldX and y the papi plane plus full arrival height.
@@ -410,8 +428,19 @@ final class SnowballCollisionTests: XCTestCase {
                        accuracy: 1e-6,
                        "dodge screen point y must sit at the arrival height over the papi plane")
         XCTAssertTrue(system.snowballs.isEmpty, "a dodged ball is culled after exiting the near plane")
-        XCTAssertEqual(parent.children.count, baseline, "dodge cull must remove ball AND shadow")
-        XCTAssertEqual(system.outstandingBalls, 0)
+        // Exit beat (penguinslide-sct follow-up): a dodge must NOT blink
+        // the nodes out — ball and shadow stay parented riding their exit
+        // one-shots (never ticked here: un-presented test trees don't run
+        // SKActions), tracked for the pause/reset seams. The full
+        // ride/pause/reset behavior is pinned by SnowballSystemTests.
+        // testDodgedBallRidesExitInsteadOfVanishing.
+        XCTAssertEqual(parent.children.count, baseline + 2,
+                       "dodge must keep ball AND shadow parented for the exit beat")
+        XCTAssertEqual(system.outstandingBalls, 0,
+                       "accounting retires at resolution, independent of the exit FX")
+        system.reset()
+        XCTAssertEqual(parent.children.count, baseline,
+                       "reset must scrub mid-exit nodes — zero leaks")
     }
 
     func testSystemFarMissDodgeScoresZeroButStillResolves() {

@@ -226,6 +226,18 @@ final class SnowballSystemTests: XCTestCase {
                        accuracy: 1e-6)
 
         let dt: TimeInterval = 1.0 / 60.0
+        // Anti-pop bound DERIVED from the arrival speed: under the
+        // accelerated default (penguinslide-sct) the ball legitimately
+        // rushes hardest on its final alive step — the shipped knobs
+        // peak at ~0.053, past the old constant-speed literal 0.05
+        // (penguinslide-gyu.33). The geometric maximum any correct step
+        // can produce is dz/(focal + dz) (scale = focal/(focal + z),
+        // worst case z falling to ~0 in one frame), so a real pop —
+        // double integration, a scale glitch — still exceeds it.
+        let arrivalSpeed = sqrt(zSpeed * zSpeed
+            + 2 * Tuning.Encounter.zAccel * spawned.spawnZ)
+        let maxStepZ = (arrivalSpeed + Tuning.Encounter.zAccel * CGFloat(dt)) * CGFloat(dt)
+        let popBound = maxStepZ / (Tuning.Encounter.focal + maxStepZ)
         var frames = 0
         while !system.snowballs.isEmpty {
             system.update(dt: dt, tilt: 0)
@@ -234,8 +246,8 @@ final class SnowballSystemTests: XCTestCase {
             guard !system.snowballs.isEmpty else { break }
             let scale = node.xScale
             XCTAssertGreaterThan(scale, lastScale, "growth must be strictly monotonic")
-            XCTAssertLessThan(scale - lastScale, 0.05,
-                              "per-frame scale jump reads as a pop")
+            XCTAssertLessThan(scale - lastScale, popBound,
+                              "per-frame scale jump exceeds the arrival-speed bound — reads as a pop")
             XCTAssertLessThanOrEqual(scale, 1.0 + 1e-6,
                                      "scale must never overshoot the camera plane")
             lastScale = scale
@@ -421,5 +433,146 @@ final class SnowballSystemTests: XCTestCase {
         system.setActionsPaused(false)
         XCTAssertFalse(node.isPaused)
         XCTAssertFalse(shadow.isPaused)
+    }
+
+    // MARK: - Flight time + acceleration (penguinslide-sct)
+
+    /// Closed-form flight time: a == 0 falls back to spawnZ / v0; the
+    /// quadratic root satisfies spawnZ = v0·t + a·t²/2 exactly.
+    func testSnowballFlightTimeClosedForm() {
+        XCTAssertEqual(snowballFlightTime(spawnZ: 900, zSpeed: 450, zAccel: 0),
+                       2.0, accuracy: 1e-9, "a == 0 must fall back to z / v0")
+
+        let t = snowballFlightTime(spawnZ: 900, zSpeed: 450, zAccel: 200)
+        let covered = 450 * CGFloat(t) + 0.5 * 200 * CGFloat(t) * CGFloat(t)
+        XCTAssertEqual(covered, 900, accuracy: 1e-6,
+                       "quadratic root must satisfy z = v0·t + a·t²/2")
+        XCTAssertLessThan(t, 2.0, "acceleration must arrive sooner than constant speed")
+    }
+
+    /// The semi-implicit Euler integrator in updateProjectiles agrees
+    /// with the closed form: a 60 Hz-stepped accelerated ball crosses
+    /// z = 0 within one frame of snowballFlightTime — the contract that
+    /// lets the aim lead and the fairness tests share one flight-time
+    /// truth with the live integrator.
+    func testIntegratorMatchesClosedFormFlightTime() {
+        let (system, _, projector) = makeSystem()
+        var rng: any RandomNumberGenerator = SplitMix64(seed: 11)
+        let zSpeed: CGFloat = Tuning.Encounter.zSpeedStart
+        let zAccel: CGFloat = Tuning.Encounter.zAccel
+        guard let ball = system.spawnSnowball(targetWorldX: projector.vanishingX,
+                                              targetVx: 0,
+                                              zSpeed: zSpeed,
+                                              zAccel: zAccel,
+                                              driftVx: 0,
+                                              using: &rng) else {
+            return XCTFail("spawn failed")
+        }
+        let predicted = snowballFlightTime(spawnZ: ball.spawnZ,
+                                           zSpeed: zSpeed, zAccel: zAccel)
+        let dt: TimeInterval = 1.0 / 60.0
+        var elapsed: TimeInterval = 0
+        var frames = 0
+        while !system.snowballs.isEmpty, frames < 600 {
+            system.update(dt: dt, tilt: 0)
+            elapsed += dt
+            frames += 1
+        }
+        XCTAssertEqual(elapsed, predicted, accuracy: dt * 2,
+                       "stepped arrival must match the closed form within ~one frame (predicted \(predicted) s, stepped \(elapsed) s)")
+    }
+
+    /// Per-frame depth steps GROW under acceleration — the "rushes as it
+    /// approaches" read, asserted on the model not the pixels.
+    func testAcceleratedBallStepsGrowMonotonically() {
+        let (system, _, projector) = makeSystem()
+        var rng: any RandomNumberGenerator = SplitMix64(seed: 12)
+        system.spawnSnowball(targetWorldX: projector.vanishingX,
+                             targetVx: 0,
+                             zSpeed: 300,
+                             zAccel: 250,
+                             driftVx: 0,
+                             using: &rng)
+        var lastZ = system.snowballs[0].z
+        var lastStep: CGFloat = 0
+        for _ in 0..<30 where !system.snowballs.isEmpty {
+            system.update(dt: 1.0 / 60.0, tilt: 0)
+            guard let ball = system.snowballs.first else { break }
+            let step = lastZ - ball.z
+            XCTAssertGreaterThan(step, lastStep,
+                                 "each frame's depth step must exceed the last under constant acceleration")
+            lastStep = step
+            lastZ = ball.z
+        }
+    }
+
+    /// penguinslide-gyu.34: the integrator floors zSpeed at the closed
+    /// form's clamp (snowballFlightTime's max(v0, 1)) so a mis-tuned
+    /// deceleration — reachable today via the DEBUG `accel=` override —
+    /// degrades to a forward crawl that still arrives, never a backward
+    /// flight that strands the volley's outstanding accounting forever
+    /// (no encounter-level timeout exists to break that soft-lock).
+    func testDeceleratingBallCrawlsForwardAndNeverReverses() {
+        let (system, _, projector) = makeSystem()
+        var rng: any RandomNumberGenerator = SplitMix64(seed: 13)
+        system.spawnSnowball(targetWorldX: projector.vanishingX,
+                             targetVx: 0,
+                             zSpeed: 300,
+                             zAccel: -600,   // would reverse in 0.5 s unfloored
+                             driftVx: 0,
+                             using: &rng)
+        var lastZ = system.snowballs[0].z
+        for _ in 0..<120 where !system.snowballs.isEmpty {
+            system.update(dt: 1.0 / 60.0, tilt: 0)
+            guard let ball = system.snowballs.first else { break }
+            XCTAssertLessThan(ball.z, lastZ,
+                              "depth must shrink every frame — a decelerating ball crawls, never flies backward")
+            XCTAssertGreaterThanOrEqual(ball.zSpeed, 1,
+                                        "zSpeed must never drop below the closed form's 1 pt/s clamp")
+            lastZ = ball.z
+        }
+        XCTAssertEqual(system.snowballs.first?.zSpeed ?? .nan, 1, accuracy: 1e-9,
+                       "after burning its launch speed the ball rides the floor toward arrival")
+    }
+
+    // MARK: - Dodge exit beat (under-the-window retirement)
+
+    /// A dodged ball must NOT vanish at the camera plane: accounting
+    /// retires immediately (completion signal independent of FX), but
+    /// the node stays parented, riding its exit one-shot, tracked in
+    /// exitingBalls for the pause/reset seams — and reset() scrubs it.
+    func testDodgedBallRidesExitInsteadOfVanishing() {
+        let (system, parent, projector) = makeSystem()
+        system.papiWorldXProvider = { projector.vanishingX + 500 }   // guaranteed miss
+        var rng: any RandomNumberGenerator = SplitMix64(seed: 21)
+        system.spawnSnowball(targetWorldX: projector.vanishingX,
+                             targetVx: 0,
+                             zSpeed: 900,
+                             zAccel: 0,
+                             driftVx: 0,
+                             using: &rng)
+        let before = system.outstandingBalls
+        for _ in 0..<200 where !system.snowballs.isEmpty {
+            system.update(dt: 1.0 / 60.0, tilt: 0)
+        }
+        XCTAssertTrue(system.snowballs.isEmpty, "flight list retires the ball")
+        XCTAssertEqual(system.outstandingBalls, before - 1,
+                       "accounting must retire at resolution, not at exit end")
+        let ballNode = parent.children.first { $0.name == "snowball" }
+        XCTAssertNotNil(ballNode,
+                        "dodged ball must remain parented for the exit beat, not blink out")
+        XCTAssertTrue(ballNode?.hasActions() ?? false, "exit one-shot must be running")
+        XCTAssertTrue(system.exitingBalls.contains { $0 === ballNode },
+                      "exit node must be tracked for the pause/reset seams")
+
+        system.setActionsPaused(true)
+        XCTAssertTrue(ballNode?.isPaused ?? false,
+                      "game-over freeze must pause a mid-exit ball")
+        system.setActionsPaused(false)
+
+        system.reset()
+        XCTAssertNil(parent.children.first { $0.name == "snowball" },
+                     "reset must scrub mid-exit balls — zero leaks")
+        XCTAssertTrue(system.exitingBalls.isEmpty)
     }
 }

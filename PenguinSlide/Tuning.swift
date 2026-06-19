@@ -198,8 +198,8 @@ enum Tuning {
         /// the whole thing plays.
         static let baseThrowIntervalStart: TimeInterval = 1.6
         static let baseThrowIntervalEnd:   TimeInterval = 0.9
-        static let baseZSpeedStart: CGFloat = 260
-        static let baseZSpeedEnd:   CGFloat = 420
+        static let baseZSpeedStart: CGFloat = 300
+        static let baseZSpeedEnd:   CGFloat = 500
         static let baseTelegraphDuration: TimeInterval = 0.75
 
         // MARK: Volley
@@ -214,13 +214,26 @@ enum Tuning {
         /// Derived: base / `paceScale` (≈ 1.23 / 0.69 s at pace 1.3).
         static let throwIntervalStart: TimeInterval = baseThrowIntervalStart / TimeInterval(paceScale)
         static let throwIntervalEnd:   TimeInterval = baseThrowIntervalEnd / TimeInterval(paceScale)
-        /// Snowball depth speed (virtual depth units/s toward the camera),
-        /// lerped by run progress at trigger time. Raise for faster balls
-        /// and shorter reaction windows. Derived: base × `paceScale`
-        /// (= 338 / 546 at pace 1.3, so a ball covers `zMonster` in
-        /// ~2.7 s at start speed, ~1.6 s at end speed).
+        /// Snowball depth LAUNCH speed (virtual depth units/s toward the
+        /// camera), lerped by run progress at trigger time; `zAccel`
+        /// then grows it in flight. Raise for faster balls and shorter
+        /// reaction windows. Derived: base × `paceScale` (= 390 / 650
+        /// at pace 1.3).
         static let zSpeedStart: CGFloat = baseZSpeedStart * paceScale
         static let zSpeedEnd:   CGFloat = baseZSpeedEnd * paceScale
+        /// In-flight depth ACCELERATION (pt/s²) at pace 1.0 — balls
+        /// launch at zSpeed (telegraph reaction window preserved) and
+        /// rush as they approach (penguinslide-sct, Mina: "snowballs
+        /// need to come faster and increase velocity", then "faster
+        /// still"). 0 restores constant-speed flight.
+        static let baseZAccel: CGFloat = 240
+        /// Derived: base × paceScale² — acceleration is distance/time²,
+        /// so compressing time by `paceScale` scales it quadratically
+        /// (the one-knob contract; EncounterPaceTests asserts it).
+        /// ≈ 406 at pace 1.3: the fastest volley ball covers `zMonster`
+        /// in ~1.04 s, the slowest in ~1.35 s, arriving ~65% faster
+        /// than launch.
+        static let zAccel: CGFloat = baseZAccel * paceScale * paceScale
 
         // MARK: Geometry
 
@@ -270,12 +283,16 @@ enum Tuning {
             + snowballBaseSize * snowballCoreFraction / 2
         /// Lateral band for dodge *severity* scoring, distinct from
         /// `lateralHitRadius`: severity is measured at the miss boundary,
-        /// so sharing the hit knob would score every dodge 0. A few
-        /// multiples of the hit radius (precedent: `Score.closeCallSeverity`
-        /// band vs `Feel.shakeRadius` being wider than the hit zone).
-        /// Raise to count farther misses as "close"; lower so only
-        /// hair's-breadth dodges score high severity.
-        static let severityRadius: CGFloat = 150
+        /// so sharing the hit knob would score every dodge 0. DERIVED as
+        /// 4× the hit radius so the closest legal dodge (miss ==
+        /// lateralHitRadius) always scores 1 − 1/4 = 0.75 — the ceiling
+        /// the 0.5 FX gates (`flybySeverityMin`, `dodgeHapticSeverity`)
+        /// were tuned against under the old hand-tuned 38/150 pair
+        /// (penguinslide-gyu.31: pinning 150 while the hit radius grew
+        /// to ~80 capped severity at ~0.47, deadening both gates).
+        /// Raise the multiplier to count farther misses as "close";
+        /// lower it so only hair's-breadth dodges score high severity.
+        static let severityRadius: CGFloat = lateralHitRadius * 4
         /// Half-width (world units) of Papi's dodge corridor at z = 0.
         /// Raise for more room to maneuver; lower for a tighter corridor
         /// where dodges demand earlier commitment.

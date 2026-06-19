@@ -100,13 +100,14 @@ final class EncounterTestVolleyConfigTests: XCTestCase {
     func testBeginAppliesOverridesOnTopOfLerpedPlan() {
         let (system, _) = makeSystem()
         system.testVolleyOverrides = Overrides(count: 3, throwInterval: nil,
-                                               zSpeed: 1200, lateralHitRadius: nil)
+                                               zSpeed: 1200, zAccel: nil, lateralHitRadius: nil)
         system.begin(difficultyProgress: 0)
         XCTAssertEqual(system.plan,
                        SnowMonsterEncounterSystem.VolleyPlan(
                            count: 3,
                            throwInterval: Tuning.Encounter.throwIntervalStart,
-                           zSpeed: 1200),
+                           zSpeed: 1200,
+                           zAccel: Tuning.Encounter.zAccel),
                        "overridden knobs replace; un-overridden keep Tuning; got \(String(describing: system.plan))")
     }
 

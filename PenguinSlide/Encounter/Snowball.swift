@@ -35,6 +35,23 @@ extension Tuning.Encounter {
     /// (core fraction) plus Papi's body width, so the hit disc always
     /// matches the visuals (penguinslide-bo8).
     static let snowballBaseSize: CGFloat = 64
+    /// Dodged-ball exit beat (penguinslide-sct follow-up, Mina: balls
+    /// must not blink out at the camera plane — they should "go
+    /// underneath the window"). Screen-space one-shot on the retired
+    /// node: continue outward/down past the bottom edge, swelling as a
+    /// passing object would, sizzling out over the last stretch.
+    /// Duration (s) of the exit slide.
+    static let dodgeExitDuration: TimeInterval = 0.22
+    /// Scale multiplier reached by the end of the exit (the "passes the
+    /// camera" swell).
+    static let dodgeExitScale: CGFloat = 1.9
+    /// Extra travel (pt) past the node's own height below y = 0, so the
+    /// swelled sprite fully clears the bottom edge before removal.
+    static let dodgeExitDropExtra: CGFloat = 140
+    /// Fraction of the ball's offset from the vanishing point added as
+    /// lateral exit drift — passing objects spread OUTWARD from screen
+    /// center under perspective.
+    static let dodgeExitLateralFactor: CGFloat = 0.6
     /// Fraction of full lead applied when aiming at the avatar — the
     /// `Chase.leadFactor` PATTERN with an encounter-local value
     /// (predicted = worldX + vx × flightTime × this). 1.0 = perfect
@@ -90,8 +107,14 @@ struct Snowball {
     /// Lateral drift (world pt/s); 0 for straight balls.
     let driftVx: CGFloat
     /// Depth speed (pt/s toward the camera) — per-ball because the
-    /// volley ramps zSpeed across an encounter.
-    let zSpeed: CGFloat
+    /// volley ramps zSpeed across an encounter. `var`: the integrator
+    /// accelerates it by `zAccel` every frame (penguinslide-sct).
+    var zSpeed: CGFloat
+    /// Constant depth acceleration (pt/s² toward the camera) — the ball
+    /// launches at `zSpeed` and rushes as it approaches. Aim lead and
+    /// the fairness tests use the exact accelerated flight time via
+    /// `snowballFlightTime`, so the prediction math never goes stale.
+    let zAccel: CGFloat
     /// Manual roll rate (rad/s, signed).
     let spinSpeed: CGFloat
     /// Depth this ball spawned at (flight-progress denominator).
@@ -122,10 +145,30 @@ func snowballAimWorldX(targetWorldX: CGFloat,
                max(corridorCenter - corridorHalfWidth, predicted))
 }
 
+/// Exact time for a ball to cover `spawnZ` from launch speed `zSpeed`
+/// under constant `zAccel`: solves spawnZ = v₀·t + a·t²/2 for t (the
+/// positive quadratic root). `zAccel ≈ 0` falls back to spawnZ / v₀.
+/// THE single source of flight-time truth (penguinslide-sct): the aim
+/// lead at spawn and the EncounterPaceTests dodgeability invariant both
+/// call this, so acceleration can never silently break either.
+func snowballFlightTime(spawnZ: CGFloat, zSpeed: CGFloat, zAccel: CGFloat) -> TimeInterval {
+    let z = max(spawnZ, 0)
+    let v0 = max(zSpeed, 1)
+    guard abs(zAccel) > 0.001 else { return TimeInterval(z / v0) }
+    // (-v0 + sqrt(v0² + 2·a·z)) / a — discriminant clamped so a (mis-
+    // tuned) deceleration that would never arrive degrades to "arrives
+    // when v reaches 0" instead of NaN.
+    let disc = max(v0 * v0 + 2 * zAccel * z, 0)
+    return TimeInterval((-v0 + sqrt(disc)) / zAccel)
+}
+
 /// Normalized flight progress: 0 at spawn, 1 at the camera plane.
 /// Clamped on both ends so a ball integrated past z = 0 (or a degenerate
 /// spawnZ) can never fold the height/shadow lerps back over — the
 /// "no pop or fold-over at any z" acceptance guarantee.
+/// POSITION-based on purpose: under acceleration (penguinslide-sct) the
+/// height arc and shadow stay geometrically correct per-z, and in
+/// wall-clock time they rush near arrival — the intended read.
 func snowballFlightProgress(z: CGFloat, spawnZ: CGFloat) -> CGFloat {
     guard spawnZ > 0 else { return 1 }
     return min(1, max(0, 1 - z / spawnZ))
