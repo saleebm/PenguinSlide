@@ -81,6 +81,13 @@ final class SnowMonsterEncounterSystem {
     /// over a farther pair, never interleaved).
     static let shadowZPositionOffset: CGFloat = 0.5
 
+    /// Draw-order for a dodged ball flying past the camera on its way out:
+    /// it is now nearer than anything in the scene, so it sits at the top of
+    /// EncounterWorld's reserved "60+ foreground FX" band (see the z-stack
+    /// doc in EncounterWorld.swift), above the Papi avatar (50..59) and the
+    /// impact-burst FX (51..).
+    static let dodgeExitZPosition: CGFloat = 69
+
     // MARK: - Configuration (wired by GameScene's encounter beads)
 
     /// Visual parent for everything this system spawns — GameScene's
@@ -968,7 +975,7 @@ final class SnowMonsterEncounterSystem {
         // Draw over every depth band on the way out: the ball is now
         // nearer than anything in the scene (EncounterWorld's reserved
         // z-stack tops out below this).
-        node.zPosition = 69
+        node.zPosition = Self.dodgeExitZPosition
         node.run(.group([
             .moveBy(x: lateral, y: -drop, duration: dur),
             .scale(by: Tuning.Encounter.dodgeExitScale, duration: dur),

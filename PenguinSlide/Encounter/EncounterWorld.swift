@@ -328,7 +328,11 @@ final class EncounterWorld {
         // projection (x and y are both linear in t), so two static segments
         // from the corridor edges at z = 0 toward a deep z suffice.
         let path = CGMutablePath()
-        let zDeep = Tuning.Encounter.zMonster * 6   // visually at the VP
+        // Push the lane lines well past the monster so they read as converging
+        // on the vanishing point — at this depth the projector has shrunk them
+        // to within a couple px of vanishingX, which looks like the VP.
+        let vanishingPointDepthFactor: CGFloat = 6
+        let zDeep = Tuning.Encounter.zMonster * vanishingPointDepthFactor
         for worldX in [projector.vanishingX - Tuning.Encounter.papiLateralRange,
                        projector.vanishingX + Tuning.Encounter.papiLateralRange] {
             let near = projector.project(worldX: worldX, z: 0).point

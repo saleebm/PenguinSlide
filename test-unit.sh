@@ -34,6 +34,11 @@ xcrun simctl bootstatus "$DEVICE_ID" -b >/dev/null 2>&1 || xcrun simctl boot "$D
 # (much slower) XCUITest suite; override with TEST for a single method.
 ONLY=(-only-testing:"${TEST:-PenguinSlideTests}")
 
+# NOTE: the run/build scripts use target mode (-target + -sdk) to dodge the
+# Xcode 26 "Supported platforms is empty" scheme-resolution bug. `xcodebuild
+# test` is the exception: it needs a scheme to resolve the test target's
+# TEST_HOST/BUNDLE_LOADER, and the explicit -destination sidesteps the
+# destination-resolution failure that bites the build scripts. Hence -scheme here.
 xcodebuild test \
   -project "$PROJECT" \
   -scheme PenguinSlide \
